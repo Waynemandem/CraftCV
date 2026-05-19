@@ -1,0 +1,19 @@
+@import "tailwindcss";
+
+@theme {
+  --color-purple-deep:   #3D2B6B;
+  --color-purple-mid:    #5B3FA6;
+  --color-purple-light:  #7C5CBF;
+  --color-purple-soft:   #EDE8F7;
+  --color-charcoal:      #2C2C36;
+  --color-matte:         #1A1A22;
+  --color-soft-white:    #F8F7FC;
+  --color-border:        #E4E2EE;
+  --color-text-muted:    #7A7893;
+
+  --font-sans: 'Inter', system-ui, sans-serif;
+}
+
+body {
+  @apply bg-soft-white text-charcoal font-sans;
+}
