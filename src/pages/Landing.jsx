@@ -50,7 +50,7 @@ export default function Landing() {
             </h1>
             <p className="text-[#7A7893] text-lg leading-relaxed mb-8 max-w-md">
               AI-powered resume builder with ATS-friendly templates.
-              Write better, faster — land more interviews.
+              Write better, faster and land more interviews.
             </p>
             <div className="flex items-center gap-3 flex-wrap">
               <Link to="/auth">
