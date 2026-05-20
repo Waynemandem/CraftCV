@@ -5,7 +5,7 @@
 
 export default function Button ({
     children,
-    variants = 'primary', ghost 
+    variant = 'primary', 
     size = 'md',
     onclick,
     disabled = false,
