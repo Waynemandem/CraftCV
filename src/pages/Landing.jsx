@@ -1,9 +1,7 @@
 // src/pages/Landing.jsx
 import { Link } from 'react-router-dom'
-import Navbar from '../components/layout/Navbar'
 import Button from '../components/ui/Button'
 import Card   from '../components/ui/Card'
-import ResumeMockup from '../components/resume/ResumeMockup'
 
 // Feature highlights data
 const FEATURES = [
