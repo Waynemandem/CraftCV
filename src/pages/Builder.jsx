@@ -6,19 +6,11 @@ import Button         from '../components/ui/Button'
 import PersonalForm   from '../components/forms/PersonalForm'
 import SummaryForm    from '../components/forms/SummaryForm'
 import ExperienceForm from '../components/forms/ExperienceForm'
-import EducationForm from '../components/forms/EducationForm'
-import SkillsForm    from '../components/forms/SkillsForm'
-import ProjectsForm  from '../components/forms/ProjectsForm'
-import CertsForm     from '../components/forms/CertsForm'
+import EducationForm  from '../components/forms/EducationForm'
+import SkillsForm     from '../components/forms/SkillsForm'
+import ProjectsForm   from '../components/forms/ProjectsForm'
+import CertsForm      from '../components/forms/CertsForm'
 
-
-function Placeholder({ title }) {
-  return (
-    <div className="flex items-center justify-center h-40 border border-dashed border-[#E4E2EE] rounded-lg">
-      <p className="text-sm text-[#7A7893]">{title} form — coming next</p>
-    </div>
-  )
-}
 
 export default function Builder() {
   const [step, setStep] = useState(1)
