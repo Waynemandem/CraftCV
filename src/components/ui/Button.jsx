@@ -7,7 +7,7 @@ export default function Button ({
     children,
     variant = 'primary', 
     size = 'md',
-    onclick,
+    onClick,
     disabled = false,
     fullwidth = false,
     type = 'button'
@@ -34,11 +34,11 @@ export default function Button ({
   return(
     <button 
     type={type}
-    onClick={onclick}
+    onClick={onClick}
     disabled={disabled}
     className={`
         ${base}
-        ${variants[variants]}
+        ${variants[variant]}
         ${sizes[size]}
         ${fullwidth ? 'w-full' : ''}
         `}
