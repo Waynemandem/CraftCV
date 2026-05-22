@@ -10,7 +10,7 @@ import EducationForm  from '../components/forms/EducationForm'
 import SkillsForm     from '../components/forms/SkillsForm'
 import ProjectsForm   from '../components/forms/ProjectsForm'
 import CertsForm      from '../components/forms/CertsForm'
-
+import MinimalTemplate from '../components/resume/MinimalTemplate'
 
 export default function Builder() {
   const [step, setStep] = useState(1)
@@ -69,15 +69,15 @@ export default function Builder() {
           </div>
         </div>
 
-        {/* Right — Preview stub */}
-        <div className="hidden md:flex flex-1 items-center justify-center bg-[#F0EEF8] overflow-y-auto">
-          <div className="bg-white w-[595px] min-h-[842px] shadow-sm border border-[#E4E2EE] rounded p-10">
-            <p className="text-xs text-[#7A7893] text-center">
-              Live preview — building next step
-            </p>
-          </div>
-        </div>
-
+       {/* Right — Live Preview */}
+<div className="hidden md:flex flex-1 items-start justify-center bg-[#F0EEF8] overflow-y-auto p-8">
+  <div
+    id="resume-preview"
+    className="bg-white w-[595px] min-h-[842px] shadow-sm border border-[#E4E2EE] rounded p-10"
+  >
+    <MinimalTemplate />
+  </div>
+</div>
       </div>
     </div>
   )
