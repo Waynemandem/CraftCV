@@ -44,7 +44,7 @@ export default function SummaryForm() {
 
       <Textarea
         label="Summary"
-        placeholder="Experienced frontend developer with 3+ years building..."
+        placeholder="professional Summary about your experiences..."
         value={summary}
         onChange={(e) => updateSummary(e.target.value)}
         rows={5}

@@ -139,7 +139,7 @@ export default function Landing() {
       <footer className="border-t border-[#E4E2EE] bg-white">
         <div className="max-w-6xl mx-auto px-6 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <span className="font-bold text-[#2C2C36]">Orbit<span className="text-[#3D2B6B]">CV</span></span>
-          <p className="text-xs text-[#7A7893]">Built by <a href="https://saturnlab.dev" className="text-[#3D2B6B] hover:underline">Saturn Lab</a></p>
+          <p className="text-xs text-[#7A7893]">Built by <a href="https://orbitcv.vercel.app/" className="text-[#3D2B6B] hover:underline">Axion Digital</a></p>
           <p className="text-xs text-[#7A7893]">© 2026 OrbitCV. All rights reserved.</p>
         </div>
       </footer>
