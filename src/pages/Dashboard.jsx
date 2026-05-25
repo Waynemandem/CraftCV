@@ -108,7 +108,7 @@ export default function Dashboard() {
         {/* Greeting */}
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-[#1A1A22] tracking-tight">
-            Hey, {firstName} 👋
+            Hey, {firstName}!
           </h1>
           <p className="text-sm text-[#7A7893] mt-1">
             Manage your resumes and build new ones.
