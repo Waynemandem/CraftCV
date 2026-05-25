@@ -17,3 +17,18 @@
 body {
   @apply bg-soft-white text-charcoal font-sans;
 }
+
+@media print {
+  /* Hide everything except the resume */
+  body > * { display: none !important; }
+  #resume-preview { display: block !important; }
+
+  /* Remove borders and shadows for print */
+  #resume-preview {
+    box-shadow: none !important;
+    border: none !important;
+    width: 100% !important;
+    min-height: auto !important;
+    padding: 32px !important;
+  }
+}

@@ -1,6 +1,9 @@
 // src/pages/Builder.jsx
 import { useState }    from 'react'
 import { Link }        from 'react-router-dom'
+import { useRef } from 'react'
+import { useReactToPrint } from 'react-to-print'
+import useResumeStore   from '../store/resumeStore'
 import StepIndicator   from '../components/ui/StepIndicator'
 import Button          from '../components/ui/Button'
 import PersonalForm    from '../components/forms/PersonalForm'
@@ -20,6 +23,26 @@ export default function Builder() {
 
   const goNext = () => setStep((s) => Math.min(s + 1, TOTAL))
   const goPrev = () => setStep((s) => Math.max(s - 1, 1))
+
+  const personal     = useResumeStore(s => s.personal)
+  const printRef     = useRef(null)
+
+const handlePrint  = useReactToPrint({
+  contentRef:  printRef,
+  documentTitle: `${personal.name || 'Resume'} — OrbitCV`,
+  pageStyle: `
+    @page {
+      size: A4;
+      margin: 0;
+    }
+    @media print {
+      body {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+    }
+  `,
+})
 
   function renderStep() {
     switch (step) {
@@ -54,7 +77,9 @@ export default function Builder() {
         <div className="flex items-center gap-2">
 
           {/* Download — desktop only */}
-          <button className="hidden md:block text-sm font-semibold text-white bg-[#3D2B6B] px-4 py-2 rounded-md hover:bg-[#2e2053] transition-colors">
+          <button 
+            onClick={handlePrint}
+            className="hidden md:block text-sm font-semibold text-white bg-[#3D2B6B] px-4 py-2 rounded-md hover:bg-[#2e2053] transition-colors">
             Download PDF
           </button>
 
@@ -107,7 +132,9 @@ export default function Builder() {
                 </div>
 
                 {/* Download in menu */}
-                <button className="w-full flex items-center gap-2 px-4 py-3 text-sm font-medium text-[#3D2B6B] hover:bg-[#F8F7FC] transition-colors">
+                <button 
+                onClick={() => { handlePrint(); setMenuOpen(false) }}
+                className="w-full flex items-center gap-2 px-4 py-3 text-sm font-medium text-[#3D2B6B] hover:bg-[#F8F7FC] transition-colors">
                   ↓ Download PDF
                 </button>
 
@@ -163,19 +190,16 @@ export default function Builder() {
           </div>
         </div>
 
-        {/* Right — Preview panel */}
-        <div className={`
-          flex-1 items-start justify-center bg-[#F0EEF8] overflow-y-auto p-4 md:p-8
-          ${showPreview ? 'flex' : 'hidden'}
-          md:flex
-        `}>
-          <div
-            id="resume-preview"
-            className="bg-white w-full md:w-[595px] min-h-[842px] shadow-sm border border-[#E4E2EE] rounded p-6 md:p-10"
-          >
-            <MinimalTemplate />
-          </div>
-        </div>
+        {/* Right — Live Preview */}
+     <div className="hidden md:flex flex-1 items-start justify-center bg-[#F0EEF8] overflow-y-auto p-8">
+         <div
+             ref={printRef}
+             id="resume-preview"
+             className="bg-white w-[595px] min-h-[842px] shadow-sm border border-[#E4E2EE] rounded p-10"
+         >
+          <MinimalTemplate />
+         </div>
+      </div>
 
       </div>
 
