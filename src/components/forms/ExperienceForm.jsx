@@ -4,6 +4,7 @@ import AIButton  from '../ui/AIButton'
 import Button    from '../ui/Button'
 import useResumeStore from '../../store/resumeStore'
 import { useState }   from 'react'
+import { askAI } from '../../lib/ai'
 
 export default function ExperienceForm() {
   const {
@@ -14,30 +15,21 @@ export default function ExperienceForm() {
 
   const [loadingBullet, setLoadingBullet] = useState(null)
 
-  const improveBullet = async (expId, index, text) => {
-    if (!text.trim()) return
-    setLoadingBullet(`${expId}-${index}`)
-    try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 150,
-          messages: [{
-            role: 'user',
-            content: `Rewrite this resume bullet point to be more professional, specific, and impactful. Start with a strong action verb. Use quantifiable results if possible. Return only the rewritten bullet, no quotes, no labels:\n\n"${text}"`
-          }]
-        })
-      })
-      const data = await res.json()
-      updateBullet(expId, index, data.content[0].text)
-    } catch {
-      alert('AI failed. Check your API key.')
-    }
-    setLoadingBullet(null)
-  }
+    const improveBullet = async (expId, index, text) => {
+       if (!text.trim()) return
+        setLoadingBullet(`${expId}-${index}`)
+      try {
+      const result = await askAI(
+         `Rewrite this resume bullet point to be more professional, specific, and impactful. Start with a strong action verb. Use quantifiable results if possible. Return only the rewritten bullet, no quotes, no labels:\n\n"${text}"`
+      )
+        updateBullet(expId, index, result)
+       } catch (err) {
+          alert('AI failed: ' + err.message)
+        }
+       setLoadingBullet(null)
+      }
 
+      
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">

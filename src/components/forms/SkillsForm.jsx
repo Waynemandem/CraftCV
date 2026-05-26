@@ -3,6 +3,7 @@ import { useState }   from 'react'
 import Badge          from '../ui/Badge'
 import AIButton       from '../ui/AIButton'
 import useResumeStore from '../../store/resumeStore'
+import { askAI }       from '../../lib/ai'
 
 const SUGGESTIONS = [
   'React', 'TypeScript', 'JavaScript', 'Node.js', 'Python',
@@ -27,27 +28,23 @@ export default function SkillsForm() {
   }
 
   const suggestSkills = async () => {
-    if (!personal.title) { alert('Add your job title in Personal Details first.'); return }
-    setLoading(true)
-    try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 200,
-          messages: [{
-            role: 'user',
-            content: `List exactly 10 relevant technical and soft skills for a ${personal.title}. Return only a comma-separated list, nothing else.`
-          }]
-        })
-      })
-      const data = await res.json()
-      const suggested = data.content[0].text.split(',').map(s => s.trim())
-      suggested.forEach(s => addSkill(s))
-    } catch { alert('AI failed. Check your API key.') }
-    setLoading(false)
+  if (!personal.title) {
+    alert('Add your job title in Personal Details first.')
+    return
   }
+  setLoading(true)
+  try {
+    const result = await askAI(
+      `List exactly 10 relevant technical and soft skills for a ${personal.title}. Return only a comma-separated list, nothing else. No numbering, no bullets, no extra text.`
+    )
+    const suggested = result.split(',').map(s => s.trim()).filter(Boolean)
+    suggested.forEach(s => addSkill(s))
+  } catch (err) {
+    alert('AI failed: ' + err.message)
+  }
+  setLoading(false)
+}
+
 
   return (
     <div className="flex flex-col gap-5">

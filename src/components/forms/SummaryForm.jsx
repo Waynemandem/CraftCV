@@ -3,37 +3,28 @@ import Textarea  from '../ui/Textarea'
 import AIButton  from '../ui/AIButton'
 import useResumeStore from '../../store/resumeStore'
 import { useState }   from 'react'
+import { askAI } from '../../lib/ai'
 
 export default function SummaryForm() {
   const { summary, updateSummary, personal } = useResumeStore()
   const [loading, setLoading] = useState(false)
 
   const generateSummary = async () => {
-    if (!personal.title) {
-      alert('Add your job title in Personal Details first.')
-      return
-    }
-    setLoading(true)
-    try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 300,
-          messages: [{
-            role: 'user',
-            content: `Write a 3-sentence professional resume summary for a ${personal.title} named ${personal.name || 'the candidate'}. Make it confident, specific, and ATS-friendly. Return only the summary text, no quotes, no labels.`
-          }]
-        })
-      })
-      const data = await res.json()
-      updateSummary(data.content[0].text)
-    } catch {
-      alert('AI generation failed. Check your API key.')
-    }
-    setLoading(false)
+  if (!personal.title) {
+    alert('Add your job title in Personal Details first.')
+    return
   }
+  setLoading(true)
+  try {
+    const result = await askAI(
+      `Write a 3-sentence professional resume summary for a ${personal.title} named ${personal.name || 'the candidate'}. Make it confident, specific, and ATS-friendly. Return only the summary text, no quotes, no labels.`
+    )
+    updateSummary(result)
+  } catch (err) {
+    alert('AI failed: ' + err.message)
+  }
+  setLoading(false)
+}
 
   return (
     <div className="flex flex-col gap-4">
