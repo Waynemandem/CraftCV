@@ -1,23 +1,33 @@
 // src/pages/Dashboard.jsx
-import { useEffect, useState } from 'react'
-import { Link, useNavigate }   from 'react-router-dom'
-import useAuthStore            from '../store/authStore'
-import useResumeStore          from '../store/resumeStore'
-import Card                    from '../components/ui/Card'
-import Button                  from '../components/ui/Button'
+import { useEffect, useState }                        from 'react'
+import { Link, useNavigate }                          from 'react-router-dom'
+import { fetchResumes, deleteResume as deleteResumeDB } from '../lib/resumeService'
+import useAuthStore                                   from '../store/authStore'
+import useResumeStore                                 from '../store/resumeStore'
+import Card                                           from '../components/ui/Card'
+import Button                                         from '../components/ui/Button'
 
 export default function Dashboard() {
   const { user, signOut }       = useAuthStore()
   const { resetResume }         = useResumeStore()
   const navigate                = useNavigate()
   const [menuOpen, setMenuOpen] = useState(false)
+  const [resumes,  setResumes]  = useState([])
+  const [loading,  setLoading]  = useState(true)
 
-  // Saved resumes — we'll connect to Supabase DB later
-  // For now using localStorage as placeholder
-  const [resumes, setResumes] = useState(() => {
-    const saved = localStorage.getItem('orbitcv_resumes')
-    return saved ? JSON.parse(saved) : []
-  })
+  // Load resumes from Supabase on mount
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const data = await fetchResumes()
+        setResumes(data)
+      } catch (err) {
+        console.error('Failed to load resumes:', err)
+      }
+      setLoading(false)
+    }
+    load()
+  }, [])
 
   const handleNewResume = () => {
     resetResume()
@@ -29,13 +39,15 @@ export default function Dashboard() {
     navigate('/')
   }
 
-  const deleteResume = (id) => {
-    const updated = resumes.filter(r => r.id !== id)
-    setResumes(updated)
-    localStorage.setItem('orbitcv_resumes', JSON.stringify(updated))
+  const deleteResume = async (id) => {
+    try {
+      await deleteResumeDB(id)
+      setResumes(prev => prev.filter(r => r.id !== id))
+    } catch (err) {
+      alert('Failed to delete: ' + err.message)
+    }
   }
 
-  // Get user's first name
   const firstName = user?.user_metadata?.full_name?.split(' ')[0]
     || user?.email?.split('@')[0]
     || 'there'
@@ -47,7 +59,6 @@ export default function Dashboard() {
       <header className="bg-white border-b border-[#E4E2EE] sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-5 md:px-8 h-14 flex items-center justify-between">
 
-          {/* Logo */}
           <Link to="/" className="font-bold text-lg tracking-tight text-[#2C2C36]">
             Orbit<span className="text-[#3D2B6B]">CV</span>
           </Link>
@@ -61,9 +72,7 @@ export default function Dashboard() {
             >
               Sign out
             </button>
-            <Button size="sm" onClick={handleNewResume}>
-              + New Resume
-            </Button>
+            <Button size="sm" onClick={handleNewResume}>+ New Resume</Button>
           </div>
 
           {/* Mobile hamburger */}
@@ -118,9 +127,9 @@ export default function Dashboard() {
         {/* Stats row */}
         <div className="grid grid-cols-3 gap-4 mb-10">
           {[
-            { val: resumes.length, label: 'Resumes'   },
-            { val: '3',            label: 'Templates'  },
-            { val: 'Free',         label: 'Current plan' },
+            { val: resumes.length, label: 'Resumes'      },
+            { val: '3',            label: 'Templates'     },
+            { val: 'Free',         label: 'Current plan'  },
           ].map(s => (
             <div key={s.label} className="bg-white border border-[#E4E2EE] rounded-lg p-4 md:p-5">
               <p className="text-xl md:text-2xl font-bold text-[#1A1A22]">{s.val}</p>
@@ -135,27 +144,30 @@ export default function Dashboard() {
           <Button size="sm" onClick={handleNewResume}>+ New Resume</Button>
         </div>
 
-        {/* Empty state */}
-        {resumes.length === 0 ? (
+        {/* Loading state */}
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <div className="w-5 h-5 border-2 border-[#3D2B6B] border-t-transparent rounded-full animate-spin" />
+          </div>
+
+        ) : resumes.length === 0 ? (
+          /* Empty state */
           <div className="bg-white border border-dashed border-[#E4E2EE] rounded-lg p-16 text-center">
             <div className="text-4xl mb-4">📄</div>
-            <h3 className="text-base font-semibold text-[#1A1A22] mb-2">
-              No resumes yet
-            </h3>
+            <h3 className="text-base font-semibold text-[#1A1A22] mb-2">No resumes yet</h3>
             <p className="text-sm text-[#7A7893] mb-6">
               Create your first resume and start landing interviews.
             </p>
-            <Button onClick={handleNewResume}>
-              Build my first resume →
-            </Button>
+            <Button onClick={handleNewResume}>Build my first resume →</Button>
           </div>
+
         ) : (
           /* Resume cards grid */
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {resumes.map(resume => (
-              <Card key={resume.id} className="group">
+              <Card key={resume.id}>
 
-                {/* Preview thumbnail */}
+                {/* Thumbnail */}
                 <div className="w-full h-36 bg-[#F8F7FC] border border-[#E4E2EE] rounded-md mb-4 flex flex-col items-start justify-start p-3 overflow-hidden">
                   <div className="h-2.5 w-24 bg-[#2C2C36]/40 rounded mb-1.5" />
                   <div className="h-2 w-16 bg-[#3D2B6B]/30 rounded mb-3" />
@@ -164,18 +176,16 @@ export default function Dashboard() {
                   <div className="h-1.5 w-4/6 bg-[#E4E2EE] rounded" />
                 </div>
 
-                {/* Info */}
+                {/* Info + actions */}
                 <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0">
                     <h3 className="text-sm font-semibold text-[#1A1A22] truncate">
-                      {resume.name || 'Untitled Resume'}
+                      {resume.name}
                     </h3>
-                    <p className="text-xs text-[#7A7893] mt-0.5">
-                      {resume.template || 'Minimal'} · {resume.updatedAt || 'Just now'}
+                    <p className="text-xs text-[#7A7893] mt-0.5 capitalize">
+                      {resume.template} · {new Date(resume.updated_at).toLocaleDateString()}
                     </p>
                   </div>
-
-                  {/* Actions */}
                   <div className="flex gap-1 ml-2">
                     <button
                       onClick={() => navigate('/builder')}
@@ -203,13 +213,12 @@ export default function Dashboard() {
               <span className="text-2xl text-[#E4E2EE]">+</span>
               <span className="text-sm font-medium text-[#7A7893]">New Resume</span>
             </button>
-
           </div>
         )}
 
       </main>
 
-      {/* ── Footer ── */}
+      {/* Footer */}
       <footer className="max-w-6xl mx-auto px-5 md:px-8 py-6 mt-10 border-t border-[#E4E2EE]">
         <p className="text-xs text-[#7A7893]">
           Built by <a href="https://saturnlab.dev" className="text-[#3D2B6B] hover:underline">Saturn Lab</a>
