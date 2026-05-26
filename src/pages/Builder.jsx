@@ -1,7 +1,7 @@
 // src/pages/Builder.jsx
-import { useState }    from 'react'
+import { useState, useRef }    from 'react'
 import { Link }        from 'react-router-dom'
-import { useRef } from 'react'
+import { createResume, updateResume } from '../lib/resumeService'
 import { useReactToPrint } from 'react-to-print'
 import useResumeStore   from '../store/resumeStore'
 import StepIndicator   from '../components/ui/StepIndicator'
@@ -21,11 +21,20 @@ export default function Builder() {
   const [showPreview, setShowPreview] = useState(false)
   const TOTAL = 7
 
+  
+
   const goNext = () => setStep((s) => Math.min(s + 1, TOTAL))
   const goPrev = () => setStep((s) => Math.max(s - 1, 1))
 
   const personal     = useResumeStore(s => s.personal)
   const printRef     = useRef(null)
+  const template     = useResumeStore(s => s.template)
+  const summary      = useResumeStore(s => s.summary)
+  const experience   = useResumeStore(s => s.experience)
+  const education    = useResumeStore(s => s.education)
+  const skills       = useResumeStore(s => s.skills)
+  const projects     = useResumeStore(s => s.projects)
+  const certs        = useResumeStore(s => s.certs)
 
 const handlePrint  = useReactToPrint({
   contentRef:  printRef,
@@ -43,6 +52,47 @@ const handlePrint  = useReactToPrint({
     }
   `,
 })
+
+
+  const [resumeId,  setResumeId]  = useState(null) // null = new, string = existing
+  const [saveName,  setSaveName]  = useState('My Resume')
+  const [saving,    setSaving]    = useState(false)
+  const [saved,     setSaved]     = useState(false)
+  
+  const handleSave = async () => {
+  setSaving(true)
+  setSaved(false)
+  try {
+    // Collect all resume data from store
+    const content = {
+      personal, summary, experience,
+      education, skills, projects, certs
+    }
+
+    if (resumeId) {
+      // Update existing
+      await updateResume(resumeId, {
+        name:     saveName,
+        content,
+        template,
+      })
+    } else {
+      // Create new
+      const saved = await createResume({
+        name:     saveName,
+        content,
+        template,
+      })
+      setResumeId(saved.id)
+    }
+    setSaved(true)
+    setTimeout(() => setSaved(false), 3000)
+  } catch (err) {
+    alert('Failed to save: ' + err.message)
+  }
+  setSaving(false)
+}
+
 
   function renderStep() {
     switch (step) {
@@ -75,6 +125,31 @@ const handlePrint  = useReactToPrint({
 
         {/* Right controls */}
         <div className="flex items-center gap-2">
+
+          {/* Resume name input */}
+         <input
+            type="text"
+            value={saveName}
+            onChange={e => setSaveName(e.target.value)}
+            className="text-sm border border-[#E4E2EE] rounded-md px-3 py-1.5 text-[#2C2C36] outline-none focus:border-[#3D2B6B] w-36"
+            placeholder="Resume name"
+         />
+
+    {/* Save button */}
+    <button
+      onClick={handleSave}
+      disabled={saving}
+      className={`
+        text-sm font-medium px-4 py-2 rounded-md border transition-colors
+        ${saved
+          ? 'bg-green-50 border-green-300 text-green-600'
+          : 'border-[#E4E2EE] text-[#2C2C36] hover:border-[#3D2B6B] hover:text-[#3D2B6B]'}
+      `}
+    >
+      {saving ? 'Saving...' : saved ? '✓ Saved' : 'Save'}
+    </button>
+
+
 
           {/* Download — desktop only */}
           <button 
