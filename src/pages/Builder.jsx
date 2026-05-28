@@ -240,7 +240,7 @@ export default function Builder() {
           w-full md:w-[42%] overflow-y-auto border-r border-[#E4E2EE] bg-white
           ${showPreview ? 'hidden' : 'block'} md:block
         `}>
-          <div className="p-5 md:p-6 max-w-xl">
+          <div className="p-5 md:p-6 max-w-xl pb-24 md:pb-6">
             {renderStep()}
 
             {/* Navigation */}
