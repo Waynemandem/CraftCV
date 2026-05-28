@@ -14,6 +14,8 @@ import SkillsForm                                 from '../components/forms/Skil
 import ProjectsForm                               from '../components/forms/ProjectsForm'
 import CertsForm                                  from '../components/forms/CertsForm'
 import MinimalTemplate                            from '../components/resume/MinimalTemplate'
+import CorporateTemplate from '../components/resume/CorporateTemplate'
+import CreativeTemplate  from '../components/resume/CreativeTemplate'
 
 export default function Builder() {
   // ── UI state
@@ -26,13 +28,14 @@ export default function Builder() {
   const [saveName, setSaveName] = useState('My Resume')
   const [saving,   setSaving]   = useState(false)
   const [saved,    setSaved]    = useState(false)
+  
 
   const TOTAL = 7
 
   // ── Resume store
   const {
     personal, summary, experience,
-    education, skills, projects, certs, template,
+    education, skills, projects, certs, template, setTemplate
   } = useResumeStore()
 
   // ── Print / PDF
@@ -251,19 +254,42 @@ export default function Builder() {
           </div>
         </div>
 
-        {/* Right — Live Preview */}
-        <div className={`
-          flex-1 items-start justify-center bg-[#F0EEF8] overflow-y-auto p-4 md:p-8
-          ${showPreview ? 'flex' : 'hidden'} md:flex
-        `}>
-          <div
-            ref={printRef}
-            id="resume-preview"
-            className="bg-white w-full md:w-[595px] min-h-[842px] shadow-sm border border-[#E4E2EE] rounded p-6 md:p-10"
-          >
-            <MinimalTemplate />
-          </div>
-        </div>
+      {/* Right — Live Preview */}
+<div className={`
+  flex-1 flex-col items-center bg-[#F0EEF8] overflow-y-auto p-4 md:p-8
+  ${showPreview ? 'flex' : 'hidden'} md:flex
+`}>
+
+  {/* Template switcher */}
+  <div className="flex gap-2 mb-4 bg-white border border-[#E4E2EE] rounded-lg p-1">
+    {['minimal', 'corporate', 'creative'].map(t => (
+      <button
+        key={t}
+        onClick={() => setTemplate(t)}
+        className={`
+          px-4 py-1.5 text-xs font-semibold rounded-md capitalize transition-all duration-150
+          ${template === t
+            ? 'bg-[#3D2B6B] text-white'
+            : 'text-[#7A7893] hover:text-[#2C2C36]'}
+        `}
+      >
+        {t}
+      </button>
+    ))}
+  </div>
+
+  {/* Resume preview */}
+  <div
+    ref={printRef}
+    id="resume-preview"
+    className="bg-white w-full md:w-[595px] min-h-[842px] shadow-sm border border-[#E4E2EE] rounded overflow-hidden"
+  >
+    {template === 'minimal'   && <div className="p-10"><MinimalTemplate /></div>}
+    {template === 'corporate' && <CorporateTemplate />}
+    {template === 'creative'  && <CreativeTemplate />}
+  </div>
+
+</div>
 
       </div>
 
