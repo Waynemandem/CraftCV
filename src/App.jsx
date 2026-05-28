@@ -7,6 +7,7 @@ import Dashboard           from './pages/Dashboard'
 import Builder             from './pages/Builder'
 import ProtectedRoute      from './components/layout/ProtectedRoute'
 import useAuthStore        from './store/authStore'
+import Pricing from './pages/Pricing'
 
 export default function App() {
   const init = useAuthStore(s => s.init)
@@ -24,6 +25,7 @@ export default function App() {
       <Route path="/builder" element={
         <ProtectedRoute><Builder /></ProtectedRoute>
       }/>
+      <Route path="/pricing" element={<Pricing />} />
     </Routes>
   )
 }

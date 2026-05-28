@@ -1,14 +1,15 @@
 // src/components/layout/Navbar.jsx
 import { Link } from 'react-router-dom'
-import Button from '../ui/Button'
+import Button   from '../ui/Button'
 import useAuthStore from '../../store/authStore'
 
+const NAV_ITEMS = ['Features', 'Templates', 'Pricing']
+
 export default function Navbar() {
-  const { user } = useAuthStore(s => s.user)
+  // ✅ correct — no destructuring, returns the value directly
+  const user = useAuthStore(s => s.user)
 
-   // If logged in → go to dashboard. If not → go to landing
   const logoHref = user ? '/dashboard' : '/'
-
 
   return (
     <header className="w-full border-b border-[#E4E2EE] bg-white sticky top-0 z-50">
@@ -22,21 +23,30 @@ export default function Navbar() {
 
         {/* Nav links — hidden on mobile */}
         <nav className="hidden md:flex items-center gap-8">
-          {['Features', 'Templates', 'Pricing'].map(item => (
-            <a
-              key={item}
-              href={`#${item.toLowerCase()}`}
-              className="text-sm text-[#7A7893] hover:text-[#2C2C36] transition-colors duration-150"
-            >
-              {item}
-            </a>
+          {NAV_ITEMS.map(item => (
+            item === 'Pricing' ? (
+              <Link
+                key={item}
+                to="/pricing"
+                className="text-sm text-[#7A7893] hover:text-[#2C2C36] transition-colors duration-150"
+              >
+                {item}
+              </Link>
+            ) : (
+              <a
+                key={item}
+                href={`#${item.toLowerCase()}`}
+                className="text-sm text-[#7A7893] hover:text-[#2C2C36] transition-colors duration-150"
+              >
+                {item}
+              </a>
+            )
           ))}
         </nav>
 
         {/* CTAs */}
         <div className="flex items-center gap-2">
           {user ? (
-            // Already logged in — show dashboard link instead
             <Link to="/dashboard">
               <Button size="sm">My Dashboard</Button>
             </Link>
@@ -51,7 +61,6 @@ export default function Navbar() {
             </>
           )}
         </div>
-
 
       </div>
     </header>
