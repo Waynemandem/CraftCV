@@ -221,7 +221,7 @@ export default function Dashboard() {
       {/* Footer */}
       <footer className="max-w-6xl mx-auto px-5 md:px-8 py-6 mt-10 border-t border-[#E4E2EE]">
         <p className="text-xs text-[#7A7893]">
-          Built by <a href="https://axiondigital.vercel.app" className="text-[#3D2B6B] hover:underline">Saturn Lab</a>
+          Built by <a href="https://axiondigital.vercel.app" className="text-[#3D2B6B] hover:underline">Axion Digital</a>
         </p>
       </footer>
 
