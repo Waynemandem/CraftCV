@@ -21,9 +21,13 @@ export default async function handler(req, res) {
   )
 
   const data = await response.json()
+
+  if (!response.ok || !data.candidates?.[0]) {
+    console.error('Gemini error:', JSON.stringify(data))
+    return res.status(500).json({ error: 'AI request failed', detail: data })
+  }
+
   return res.status(200).json({
     result: data.candidates[0].content.parts[0].text
   })
 }
-
-//  This file is the API route that our frontend hits for all AI calls. It securely proxies requests to Google's Gemini API using our server-side API key.
