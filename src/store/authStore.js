@@ -15,7 +15,7 @@ const useAuthStore = create((set) => ({
 
     // Listen for auth state changes (login, logout, token refresh)
     supabase.auth.onAuthStateChange((_event, session) => {
-      set({ user: session?.user ?? null })
+      set({ user: session?.user ?? null, loading: false })
     })
   },
 

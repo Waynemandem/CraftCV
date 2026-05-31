@@ -4,6 +4,7 @@ import Button from '../components/ui/Button'
 import Card   from '../components/ui/Card'
 import ResumeMockup from '../components/resume/ResumeMockup'
 import Navbar from '../components/layout/Navbar'
+import  useAuthStore  from '../store/authStore'
 
 // Feature highlights data
 const FEATURES = [
@@ -41,6 +42,7 @@ const TEMPLATES = [
     preview: <CreativePreview />,
   },
 ]
+
 
 // ── Mini template previews ──
 // These are scaled-down static snapshots of each template style
@@ -197,6 +199,7 @@ function CreativePreview() {
 }
 
 export default function Landing() {
+  const user = useAuthStore(s => s.user)
   return (
     <div className="min-h-screen bg-[#F8F7FC]">
       <Navbar />
@@ -284,7 +287,7 @@ export default function Landing() {
           <div className="p-4">
             <div className="flex items-center justify-between mb-1">
               <h3 className="text-sm font-semibold text-[#1A1A22]">{t.name}</h3>
-              <Link to="/auth">
+              <Link to={user ? "/builder" : "/auth"}>
                 <span className="text-xs text-[#3D2B6B] font-medium hover:underline">
                   Use this →
                 </span>
