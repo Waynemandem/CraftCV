@@ -1,33 +1,47 @@
 // src/pages/Dashboard.jsx
-import { useEffect, useState }                        from 'react'
+import { useState }                        from 'react'
 import { Link, useNavigate }                          from 'react-router-dom'
 import { fetchResumes, deleteResume as deleteResumeDB } from '../lib/resumeService'
 import useAuthStore                                   from '../store/authStore'
 import useResumeStore                                 from '../store/resumeStore'
 import Card                                           from '../components/ui/Card'
 import Button                                         from '../components/ui/Button'
+import { useProfile } from '../hooks/useProfile'
+import UpgradeButton from '../components/ui/UpgradeButton'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+
 
 export default function Dashboard() {
   const { user, signOut }       = useAuthStore()
   const { resetResume }         = useResumeStore()
   const navigate                = useNavigate()
   const [menuOpen, setMenuOpen] = useState(false)
-  const [resumes,  setResumes]  = useState([])
-  const [loading,  setLoading]  = useState(true)
+  const { profile, isPro } = useProfile() 
+  const queryClient = useQueryClient()
 
-  // Load resumes from Supabase on mount
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const data = await fetchResumes()
-        setResumes(data)
-      } catch (err) {
-        console.error('Failed to load resumes:', err)
-      }
-      setLoading(false)
-    }
-    load()
-  }, [])
+  const {
+    data: resumes = [],
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ['resumes'],
+    queryFn: fetchResumes,
+  })
+
+  // DELETE mutation for delete
+const deleteMutation = useMutation({
+  mutationFn: deleteResumeDB,
+  onSuccess: () => {
+    // Automatically refresh the resume list after delete
+    queryClient.invalidateQueries({ queryKey: ['resumes'] })
+  },
+})
+
+ // Update deleteResume to use mutation
+const deleteResume = (id) => {
+  deleteMutation.mutate(id)
+}
+
 
   const handleNewResume = () => {
     resetResume()
@@ -39,14 +53,6 @@ export default function Dashboard() {
     navigate('/')
   }
 
-  const deleteResume = async (id) => {
-    try {
-      await deleteResumeDB(id)
-      setResumes(prev => prev.filter(r => r.id !== id))
-    } catch (err) {
-      alert('Failed to delete: ' + err.message)
-    }
-  }
 
   const firstName = user?.user_metadata?.full_name?.split(' ')[0]
     || user?.email?.split('@')[0]
@@ -127,16 +133,45 @@ export default function Dashboard() {
         {/* Stats row */}
         <div className="grid grid-cols-3 gap-4 mb-10">
           {[
-            { val: resumes.length, label: 'Resumes'      },
-            { val: '3',            label: 'Templates'     },
-            { val: 'Free',         label: 'Current plan'  },
-          ].map(s => (
-            <div key={s.label} className="bg-white border border-[#E4E2EE] rounded-lg p-4 md:p-5">
-              <p className="text-xl md:text-2xl font-bold text-[#1A1A22]">{s.val}</p>
-              <p className="text-xs text-[#7A7893] mt-0.5">{s.label}</p>
-            </div>
-          ))}
+  { val: resumes.length, label: 'Resumes' },
+  { val: '3',            label: 'Templates' },
+  {
+    val:   isPro ? 'Pro ✦' : 'Free',
+    label: 'Current Plan',
+    color: isPro ? '#3D2B6B' : undefined,
+  },
+].map(s => (
+  <div key={s.label} className="bg-white border border-[#E4E2EE] rounded-lg p-4 md:p-5">
+    <p className="text-xl md:text-2xl font-bold"
+       style={{ color: s.color || '#1A1A22' }}>
+      {s.val}
+    </p>
+    <p className="text-xs text-[#7A7893] mt-0.5">{s.label}</p>
+  </div>
+))}
         </div>
+
+
+{/* Upgrade banner for free users */}
+{!isPro && (
+  <div style={{
+    background: 'linear-gradient(135deg, #3D2B6B, #5B3FA6)',
+    borderRadius: 12, padding: '24px 28px',
+    display: 'flex', alignItems: 'center',
+    justifyContent: 'space-between', flexWrap: 'wrap', gap: 16,
+    marginBottom: 32,
+  }}>
+    <div>
+      <p style={{ fontSize: 16, fontWeight: 700, color: '#fff', marginBottom: 4 }}>
+        Upgrade to Pro
+      </p>
+      <p style={{ fontSize: 13, color: '#C4B8E8' }}>
+        Unlock AI features, all 3 templates, and unlimited resumes.
+      </p>
+    </div>
+    <UpgradeButton size="md" />
+  </div>
+)}
 
         {/* Section header */}
         <div className="flex items-center justify-between mb-5">
@@ -145,12 +180,15 @@ export default function Dashboard() {
         </div>
 
         {/* Loading state */}
-        {loading ? (
+        {isLoading ? (
           <div className="flex items-center justify-center py-20">
             <div className="w-5 h-5 border-2 border-[#3D2B6B] border-t-transparent rounded-full animate-spin" />
           </div>
 
-        ) : resumes.length === 0 ? (
+        ) : isError ? (
+          /* Error state */
+        <div>Failed to load resumes. Try refreshing.</div>
+        )  : resumes.length === 0 ? (
           /* Empty state */
           <div className="bg-white border border-dashed border-[#E4E2EE] rounded-lg p-16 text-center">
             <div className="text-4xl mb-4">📄</div>

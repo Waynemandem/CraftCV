@@ -1,6 +1,24 @@
 // src/components/ui/AIButton.jsx
+import { useProfile } from '../../hooks/useProfile'
+import UpgradeButton from './UpgradeButton'
 
-export default function AIButton({ onClick, loading = false, label = 'Improve with AI' }) {
+export default function AIButton({
+  onClick, loading = false, label = 'Improve with AI'
+}) {
+  const { isPro } = useProfile()
+
+  // Not Pro — show upgrade prompt instead
+  if (!isPro) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+        <span style={{ fontSize: 12, color: '#7A7893' }}>
+          ✦ AI features require Pro
+        </span>
+        <UpgradeButton size="sm" />
+      </div>
+    )
+  }
+
   return (
     <button
       onClick={onClick}

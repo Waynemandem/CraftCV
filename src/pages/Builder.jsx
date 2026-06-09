@@ -16,7 +16,10 @@ import CertsForm                                  from '../components/forms/Cert
 import MinimalTemplate                            from '../components/resume/MinimalTemplate'
 import CorporateTemplate from '../components/resume/CorporateTemplate'
 import CreativeTemplate  from '../components/resume/CreativeTemplate'
-
+import { useProfile } from '../hooks/useProfile'
+import UpgradeButton from '../components/ui/UpgradeButton'
+import { useMutation, useQueryClient }
+  
 export default function Builder() {
   // ── UI state
   const [step,        setStep]        = useState(1)
