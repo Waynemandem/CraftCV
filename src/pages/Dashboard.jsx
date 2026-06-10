@@ -1,47 +1,44 @@
 // src/pages/Dashboard.jsx
-import { useState }                        from 'react'
 import { Link, useNavigate }                          from 'react-router-dom'
+import { useQuery, useMutation, useQueryClient }      from '@tanstack/react-query'
 import { fetchResumes, deleteResume as deleteResumeDB } from '../lib/resumeService'
 import useAuthStore                                   from '../store/authStore'
 import useResumeStore                                 from '../store/resumeStore'
+import { useProfile }                                 from '../hooks/useProfile'
 import Card                                           from '../components/ui/Card'
 import Button                                         from '../components/ui/Button'
-import { useProfile } from '../hooks/useProfile'
-import UpgradeButton from '../components/ui/UpgradeButton'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-
+import UpgradeButton                                  from '../components/ui/UpgradeButton'
+import { useState }                                   from 'react'
 
 export default function Dashboard() {
   const { user, signOut }       = useAuthStore()
   const { resetResume }         = useResumeStore()
+  const { profile, isPro }      = useProfile()
   const navigate                = useNavigate()
+  const queryClient             = useQueryClient()
   const [menuOpen, setMenuOpen] = useState(false)
-  const { profile, isPro } = useProfile() 
-  const queryClient = useQueryClient()
 
+  // ── Fetch resumes with TanStack Query ──
   const {
     data: resumes = [],
     isLoading,
     isError,
   } = useQuery({
     queryKey: ['resumes'],
-    queryFn: fetchResumes,
+    queryFn:  fetchResumes,
   })
 
-  // DELETE mutation for delete
-const deleteMutation = useMutation({
-  mutationFn: deleteResumeDB,
-  onSuccess: () => {
-    // Automatically refresh the resume list after delete
-    queryClient.invalidateQueries({ queryKey: ['resumes'] })
-  },
-})
-
- // Update deleteResume to use mutation
-const deleteResume = (id) => {
-  deleteMutation.mutate(id)
-}
-
+  // ── Delete resume mutation ──
+  const deleteMutation = useMutation({
+    mutationFn: deleteResumeDB,
+    onSuccess: () => {
+      // Automatically refresh resume list after delete
+      queryClient.invalidateQueries({ queryKey: ['resumes'] })
+    },
+    onError: (err) => {
+      alert('Failed to delete: ' + err.message)
+    },
+  })
 
   const handleNewResume = () => {
     resetResume()
@@ -53,6 +50,9 @@ const deleteResume = (id) => {
     navigate('/')
   }
 
+  const handleEdit = (resume) => {
+    navigate(`/builder?id=${resume.id}`)
+  }
 
   const firstName = user?.user_metadata?.full_name?.split(' ')[0]
     || user?.email?.split('@')[0]
@@ -72,6 +72,14 @@ const deleteResume = (id) => {
           {/* Desktop right */}
           <div className="hidden md:flex items-center gap-4">
             <span className="text-sm text-[#7A7893]">{user?.email}</span>
+            {/* Show Pro badge or upgrade button */}
+            {isPro ? (
+              <span className="text-xs font-semibold text-[#3D2B6B] bg-[#EDE8F7] px-3 py-1 rounded-full">
+                ✦ Pro
+              </span>
+            ) : (
+              <UpgradeButton size="sm" />
+            )}
             <button
               onClick={handleSignOut}
               className="text-sm text-[#7A7893] hover:text-[#2C2C36] transition-colors"
@@ -97,6 +105,11 @@ const deleteResume = (id) => {
                 <div className="px-4 py-3 border-b border-[#E4E2EE]">
                   <p className="text-xs text-[#7A7893]">Signed in as</p>
                   <p className="text-sm font-medium text-[#2C2C36] truncate">{user?.email}</p>
+                  {isPro && (
+                    <span className="text-[10px] font-semibold text-[#3D2B6B] bg-[#EDE8F7] px-2 py-0.5 rounded-full mt-1 inline-block">
+                      ✦ Pro
+                    </span>
+                  )}
                 </div>
                 <button
                   onClick={() => { handleNewResume(); setMenuOpen(false) }}
@@ -131,47 +144,41 @@ const deleteResume = (id) => {
         </div>
 
         {/* Stats row */}
-        <div className="grid grid-cols-3 gap-4 mb-10">
-          {[
-  { val: resumes.length, label: 'Resumes' },
-  { val: '3',            label: 'Templates' },
-  {
-    val:   isPro ? 'Pro ✦' : 'Free',
-    label: 'Current Plan',
-    color: isPro ? '#3D2B6B' : undefined,
-  },
-].map(s => (
-  <div key={s.label} className="bg-white border border-[#E4E2EE] rounded-lg p-4 md:p-5">
-    <p className="text-xl md:text-2xl font-bold"
-       style={{ color: s.color || '#1A1A22' }}>
-      {s.val}
-    </p>
-    <p className="text-xs text-[#7A7893] mt-0.5">{s.label}</p>
-  </div>
-))}
+        <div className="grid grid-cols-3 gap-4 mb-6">
+          <div className="bg-white border border-[#E4E2EE] rounded-lg p-4 md:p-5">
+            <p className="text-xl md:text-2xl font-bold text-[#1A1A22]">{resumes.length}</p>
+            <p className="text-xs text-[#7A7893] mt-0.5">Resumes</p>
+          </div>
+          <div className="bg-white border border-[#E4E2EE] rounded-lg p-4 md:p-5">
+            <p className="text-xl md:text-2xl font-bold text-[#1A1A22]">{isPro ? '3' : '1'}</p>
+            <p className="text-xs text-[#7A7893] mt-0.5">Templates</p>
+          </div>
+          <div className="bg-white border border-[#E4E2EE] rounded-lg p-4 md:p-5">
+            <p className="text-xl md:text-2xl font-bold"
+               style={{ color: isPro ? '#3D2B6B' : '#1A1A22' }}>
+              {isPro ? 'Pro ✦' : 'Free'}
+            </p>
+            <p className="text-xs text-[#7A7893] mt-0.5">Current plan</p>
+          </div>
         </div>
 
-
-{/* Upgrade banner for free users */}
-{!isPro && (
-  <div style={{
-    background: 'linear-gradient(135deg, #3D2B6B, #5B3FA6)',
-    borderRadius: 12, padding: '24px 28px',
-    display: 'flex', alignItems: 'center',
-    justifyContent: 'space-between', flexWrap: 'wrap', gap: 16,
-    marginBottom: 32,
-  }}>
-    <div>
-      <p style={{ fontSize: 16, fontWeight: 700, color: '#fff', marginBottom: 4 }}>
-        Upgrade to Pro
-      </p>
-      <p style={{ fontSize: 13, color: '#C4B8E8' }}>
-        Unlock AI features, all 3 templates, and unlimited resumes.
-      </p>
-    </div>
-    <UpgradeButton size="md" />
-  </div>
-)}
+        {/* ── Upgrade banner — only shown to free users ── */}
+        {!isPro && (
+          <div
+            className="rounded-xl p-5 md:p-6 mb-8 flex items-center justify-between flex-wrap gap-4"
+            style={{ background: 'linear-gradient(135deg, #3D2B6B 0%, #5B3FA6 100%)' }}
+          >
+            <div>
+              <p className="text-base font-bold text-white mb-1">
+                Unlock the full OrbitCV experience
+              </p>
+              <p className="text-sm text-[#C4B8E8]">
+                AI writing · All 3 templates · Unlimited resumes · Clean PDF export
+              </p>
+            </div>
+            <UpgradeButton size="md" />
+          </div>
+        )}
 
         {/* Section header */}
         <div className="flex items-center justify-between mb-5">
@@ -179,7 +186,7 @@ const deleteResume = (id) => {
           <Button size="sm" onClick={handleNewResume}>+ New Resume</Button>
         </div>
 
-        {/* Loading state */}
+        {/* ── Loading ── */}
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
             <div className="w-5 h-5 border-2 border-[#3D2B6B] border-t-transparent rounded-full animate-spin" />
@@ -187,8 +194,17 @@ const deleteResume = (id) => {
 
         ) : isError ? (
           /* Error state */
-        <div>Failed to load resumes. Try refreshing.</div>
-        )  : resumes.length === 0 ? (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-8 text-center">
+            <p className="text-sm text-red-600 font-medium">Failed to load resumes.</p>
+            <button
+              onClick={() => queryClient.invalidateQueries({ queryKey: ['resumes'] })}
+              className="text-sm text-red-500 hover:underline mt-2"
+            >
+              Try again
+            </button>
+          </div>
+
+        ) : resumes.length === 0 ? (
           /* Empty state */
           <div className="bg-white border border-dashed border-[#E4E2EE] rounded-lg p-16 text-center">
             <div className="text-4xl mb-4">📄</div>
@@ -200,18 +216,39 @@ const deleteResume = (id) => {
           </div>
 
         ) : (
-          /* Resume cards grid */
+          /* ── Resume cards grid ── */
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {resumes.map(resume => (
               <Card key={resume.id}>
 
-                {/* Thumbnail */}
-                <div className="w-full h-36 bg-[#F8F7FC] border border-[#E4E2EE] rounded-md mb-4 flex flex-col items-start justify-start p-3 overflow-hidden">
-                  <div className="h-2.5 w-24 bg-[#2C2C36]/40 rounded mb-1.5" />
-                  <div className="h-2 w-16 bg-[#3D2B6B]/30 rounded mb-3" />
-                  <div className="h-1.5 w-full bg-[#E4E2EE] rounded mb-1" />
-                  <div className="h-1.5 w-5/6 bg-[#E4E2EE] rounded mb-1" />
-                  <div className="h-1.5 w-4/6 bg-[#E4E2EE] rounded" />
+                {/* Thumbnail with real data */}
+                <div className="w-full h-36 bg-[#F8F7FC] border border-[#E4E2EE] rounded-md mb-4 overflow-hidden">
+                  <div className="p-3 h-full flex flex-col">
+                    <div className="mb-2">
+                      <p className="text-[11px] font-bold text-[#1A1A22] truncate">
+                        {resume.content?.personal?.name || 'Untitled'}
+                      </p>
+                      <p className="text-[10px] text-[#5B3FA6] truncate">
+                        {resume.content?.personal?.title || ''}
+                      </p>
+                    </div>
+                    <div className="flex flex-col gap-1.5 flex-1">
+                      <div className="h-1.5 w-full bg-[#E4E2EE] rounded" />
+                      <div className="h-1.5 w-5/6 bg-[#E4E2EE] rounded" />
+                      <div className="h-1.5 w-4/6 bg-[#E4E2EE] rounded" />
+                      <div className="h-1.5 w-full bg-[#E4E2EE] rounded mt-1" />
+                      <div className="h-1.5 w-3/4 bg-[#E4E2EE] rounded" />
+                    </div>
+                    {resume.content?.skills?.length > 0 && (
+                      <div className="flex gap-1 flex-wrap mt-1">
+                        {resume.content.skills.slice(0, 3).map(s => (
+                          <span key={s} className="text-[8px] bg-[#EDE8F7] text-[#3D2B6B] px-1.5 py-0.5 rounded">
+                            {s}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Info + actions */}
@@ -223,19 +260,26 @@ const deleteResume = (id) => {
                     <p className="text-xs text-[#7A7893] mt-0.5 capitalize">
                       {resume.template} · {new Date(resume.updated_at).toLocaleDateString()}
                     </p>
+                    {resume.content?.skills?.length > 0 && (
+                      <p className="text-xs text-[#7A7893] mt-0.5">
+                        {resume.content.skills.length} skills
+                        {resume.content.experience?.length > 0 && ` · ${resume.content.experience.length} jobs`}
+                      </p>
+                    )}
                   </div>
                   <div className="flex gap-1 ml-2">
                     <button
-                      onClick={() => navigate('/builder')}
+                      onClick={() => handleEdit(resume)}
                       className="text-xs text-[#3D2B6B] border border-[#E4E2EE] px-2.5 py-1 rounded hover:bg-[#EDE8F7] transition-colors"
                     >
                       Edit
                     </button>
                     <button
-                      onClick={() => deleteResume(resume.id)}
-                      className="text-xs text-red-400 border border-[#E4E2EE] px-2.5 py-1 rounded hover:bg-red-50 transition-colors"
+                      onClick={() => deleteMutation.mutate(resume.id)}
+                      disabled={deleteMutation.isPending}
+                      className="text-xs text-red-400 border border-[#E4E2EE] px-2.5 py-1 rounded hover:bg-red-50 transition-colors disabled:opacity-50"
                     >
-                      Del
+                      {deleteMutation.isPending ? '...' : 'Del'}
                     </button>
                   </div>
                 </div>
@@ -259,7 +303,10 @@ const deleteResume = (id) => {
       {/* Footer */}
       <footer className="max-w-6xl mx-auto px-5 md:px-8 py-6 mt-10 border-t border-[#E4E2EE]">
         <p className="text-xs text-[#7A7893]">
-          Built by <a href="https://axiondigital.vercel.app" className="text-[#3D2B6B] hover:underline">Axion Digital</a>
+          Built by{' '}
+          <a href="https://axiondigital.vercel.app" className="text-[#3D2B6B] hover:underline">
+            Axion Digital
+          </a>
         </p>
       </footer>
 

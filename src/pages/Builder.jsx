@@ -1,11 +1,15 @@
 // src/pages/Builder.jsx
-import { useState, useRef }                       from 'react'
-import { Link }                                   from 'react-router-dom'
+import { useState, useRef, useEffect }            from 'react'
+import { Link, useSearchParams }                  from 'react-router-dom'
 import { useReactToPrint }                        from 'react-to-print'
+import { useMutation, useQuery, useQueryClient }  from '@tanstack/react-query'
 import { createResume, updateResume }             from '../lib/resumeService'
+import { fetchResumeById }                        from '../lib/resumeService'
 import useResumeStore                             from '../store/resumeStore'
+import { useProfile }                             from '../hooks/useProfile'
 import StepIndicator                              from '../components/ui/StepIndicator'
 import Button                                     from '../components/ui/Button'
+import UpgradeButton                              from '../components/ui/UpgradeButton'
 import PersonalForm                               from '../components/forms/PersonalForm'
 import SummaryForm                                from '../components/forms/SummaryForm'
 import ExperienceForm                             from '../components/forms/ExperienceForm'
@@ -14,15 +18,11 @@ import SkillsForm                                 from '../components/forms/Skil
 import ProjectsForm                               from '../components/forms/ProjectsForm'
 import CertsForm                                  from '../components/forms/CertsForm'
 import MinimalTemplate                            from '../components/resume/MinimalTemplate'
-import CorporateTemplate from '../components/resume/CorporateTemplate'
-import CreativeTemplate  from '../components/resume/CreativeTemplate'
-import { useProfile } from '../hooks/useProfile'
-import UpgradeButton from '../components/ui/UpgradeButton'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-  
+import CorporateTemplate                          from '../components/resume/CorporateTemplate'
+import CreativeTemplate                           from '../components/resume/CreativeTemplate'
+
 export default function Builder() {
   // ── UI state
-  const queryClient = useQueryClient()
   const [step,        setStep]        = useState(1)
   const [menuOpen,    setMenuOpen]    = useState(false)
   const [showPreview, setShowPreview] = useState(false)
@@ -30,39 +30,49 @@ export default function Builder() {
   // ── Save state
   const [resumeId, setResumeId] = useState(null)
   const [saveName, setSaveName] = useState('My Resume')
-  const [saving,   setSaving]   = useState(false)
-  const [saved,    setSaved]    = useState(false)
-  
 
   const TOTAL = 7
-
-
-  const saveMuutation = useMutation({
-    mutationFn: ({ isNew, data }) => 
-      isNew ? createResume(data) : updateResume(resumeId, data),
-    onSuccess: (result) => {  
-      // if new resume, store the ID 
-    if (!resumeId) setResumeId(result.id)  
-    // refresh dashboard resume list in the background
-    queryClient.invalidateQueries({ queryKey: ['resumes'] }) 
- 
-    setSaved(true)
-    setTimeout(() => setSaved(false), 3000)
-},
-
-    onError: (err) => {
-      alert('Failed to save: ' + err.message)
-    },
-  }) 
- 
-
-
 
   // ── Resume store
   const {
     personal, summary, experience,
-    education, skills, projects, certs, template, setTemplate
+    education, skills, projects, certs,
+    template, setTemplate, loadResume,
   } = useResumeStore()
+
+  // ── Auth / plan
+  const { isPro } = useProfile()
+
+  // ── TanStack Query
+  const queryClient = useQueryClient()
+
+  // ── URL params — editing existing resume
+  const [searchParams] = useSearchParams()
+  const editId = searchParams.get('id')
+
+  // Fetch existing resume if editing
+  const { data: existingResume } = useQuery({
+    queryKey: ['resume', editId],
+    queryFn:  () => fetchResumeById(editId),
+    enabled:  !!editId,
+    staleTime: Infinity,
+  })
+
+  // Load existing resume into store when data arrives
+  useEffect(() => {
+    if (existingResume) {
+      loadResume(existingResume.content, existingResume.template)
+      setResumeId(existingResume.id)
+      setSaveName(existingResume.name)
+    }
+  }, [existingResume])
+
+  // Pre-fill save name from personal data
+  useEffect(() => {
+    if (personal.name && !editId) {
+      setSaveName(`${personal.name}'s Resume`)
+    }
+  }, [personal.name])
 
   // ── Print / PDF
   const printRef    = useRef(null)
@@ -77,24 +87,34 @@ export default function Builder() {
     `,
   })
 
-  // ── Save to Supabase
-  const handleSave = async () => {
-    setSaving(true)
-    setSaved(false)
-    try {
-      const content = { personal, summary, experience, education, skills, projects, certs }
-      if (resumeId) {
-        await updateResume(resumeId, { name: saveName, content, template })
-      } else {
-        const result = await createResume({ name: saveName, content, template })
+  // ── Save mutation via TanStack Query ──
+  const saveMutation = useMutation({
+    mutationFn: ({ isNew, data }) =>
+      isNew ? createResume(data) : updateResume(resumeId, data),
+
+    onSuccess: (result) => {
+      // If new resume, save the returned ID for future updates
+      if (!resumeId && result?.id) {
         setResumeId(result.id)
       }
-      setSaved(true)
-      setTimeout(() => setSaved(false), 3000)
-    } catch (err) {
+      // Refresh dashboard resume list in background
+      queryClient.invalidateQueries({ queryKey: ['resumes'] })
+    },
+
+    onError: (err) => {
       alert('Failed to save: ' + err.message)
+    },
+  })
+
+  const handleSave = () => {
+    const content = {
+      personal, summary, experience,
+      education, skills, projects, certs,
     }
-    setSaving(false)
+    saveMutation.mutate({
+      isNew: !resumeId,
+      data:  { name: saveName, content, template },
+    })
   }
 
   // ── Step navigation
@@ -112,6 +132,13 @@ export default function Builder() {
       case 7: return <CertsForm />
       default: return null
     }
+  }
+
+  // ── Save button label helper
+  const saveLabel = () => {
+    if (saveMutation.isPending) return 'Saving...'
+    if (saveMutation.isSuccess) return '✓ Saved'
+    return 'Save'
   }
 
   return (
@@ -143,15 +170,15 @@ export default function Builder() {
           {/* Save button — desktop only */}
           <button
             onClick={handleSave}
-            disabled={saving}
+            disabled={saveMutation.isPending}
             className={`
               hidden md:block text-sm font-medium px-4 py-2 rounded-md border transition-colors
-              ${saved
+              ${saveMutation.isSuccess
                 ? 'bg-green-50 border-green-300 text-green-600'
                 : 'border-[#E4E2EE] text-[#2C2C36] hover:border-[#3D2B6B] hover:text-[#3D2B6B]'}
             `}
           >
-            {saving ? 'Saving...' : saved ? '✓ Saved' : 'Save'}
+            {saveLabel()}
           </button>
 
           {/* Download PDF — desktop only */}
@@ -215,15 +242,15 @@ export default function Builder() {
                   />
                   <button
                     onClick={() => { handleSave(); setMenuOpen(false) }}
-                    disabled={saving}
+                    disabled={saveMutation.isPending}
                     className={`
                       w-full text-sm font-medium py-2 rounded-md border transition-colors
-                      ${saved
+                      ${saveMutation.isSuccess
                         ? 'bg-green-50 border-green-300 text-green-600'
                         : 'border-[#E4E2EE] text-[#2C2C36] hover:border-[#3D2B6B]'}
                     `}
                   >
-                    {saving ? 'Saving...' : saved ? '✓ Saved' : 'Save Resume'}
+                    {saveLabel()}
                   </button>
                 </div>
 
@@ -280,42 +307,60 @@ export default function Builder() {
           </div>
         </div>
 
-      {/* Right — Live Preview */}
-<div className={`
-  flex-1 flex-col items-center bg-[#F0EEF8] overflow-y-auto p-4 md:p-8
-  ${showPreview ? 'flex' : 'hidden'} md:flex
-`}>
+        {/* Right — Live Preview */}
+        <div className={`
+          flex-1 flex-col items-center bg-[#F0EEF8] overflow-y-auto p-4 md:p-8
+          ${showPreview ? 'flex' : 'hidden'} md:flex
+        `}>
 
-  {/* Template switcher */}
-  <div className="flex gap-2 mb-4 bg-white border border-[#E4E2EE] rounded-lg p-1">
-    {['minimal', 'corporate', 'creative'].map(t => (
-      <button
-        key={t}
-        onClick={() => setTemplate(t)}
-        className={`
-          px-4 py-1.5 text-xs font-semibold rounded-md capitalize transition-all duration-150
-          ${template === t
-            ? 'bg-[#3D2B6B] text-white'
-            : 'text-[#7A7893] hover:text-[#2C2C36]'}
-        `}
-      >
-        {t}
-      </button>
-    ))}
-  </div>
+          {/* Template switcher */}
+          <div className="flex gap-2 mb-4 bg-white border border-[#E4E2EE] rounded-lg p-1">
+            {['minimal', 'corporate', 'creative'].map(t => {
+              const isLocked = !isPro && t !== 'minimal'
+              return (
+                <button
+                  key={t}
+                  onClick={() => !isLocked && setTemplate(t)}
+                  title={isLocked ? 'Upgrade to Pro to unlock' : ''}
+                  className={`
+                    px-4 py-1.5 text-xs font-semibold rounded-md capitalize
+                    transition-all duration-150 flex items-center gap-1.5
+                    ${template === t
+                      ? 'bg-[#3D2B6B] text-white'
+                      : isLocked
+                        ? 'text-[#C4C4C4] cursor-not-allowed'
+                        : 'text-[#7A7893] hover:text-[#2C2C36] cursor-pointer'}
+                  `}
+                >
+                  {isLocked && <span className="text-[10px]">🔒</span>}
+                  {t}
+                </button>
+              )
+            })}
+          </div>
 
-  {/* Resume preview */}
-  <div
-    ref={printRef}
-    id="resume-preview"
-    className="bg-white w-full md:w-[595px] min-h-[842px] shadow-sm border border-[#E4E2EE] rounded overflow-hidden"
-  >
-    {template === 'minimal'   && <div className="p-10"><MinimalTemplate /></div>}
-    {template === 'corporate' && <CorporateTemplate />}
-    {template === 'creative'  && <CreativeTemplate />}
-  </div>
+          {/* Upgrade nudge — free users only */}
+          {!isPro && (
+            <div className="w-full md:w-[595px] mb-4 bg-[#EDE8F7] border border-[#3D2B6B]/20 rounded-lg px-4 py-3 flex items-center justify-between gap-3">
+              <p className="text-xs text-[#3D2B6B] font-medium">
+                ✦ Unlock Corporate + Creative templates and all AI features
+              </p>
+              <UpgradeButton size="sm" />
+            </div>
+          )}
 
-</div>
+          {/* Resume preview */}
+          <div
+            ref={printRef}
+            id="resume-preview"
+            className="bg-white w-full md:w-[595px] min-h-[842px] shadow-sm border border-[#E4E2EE] rounded overflow-hidden"
+          >
+            {template === 'minimal'   && <div className="p-10"><MinimalTemplate /></div>}
+            {template === 'corporate' && <CorporateTemplate />}
+            {template === 'creative'  && <CreativeTemplate />}
+          </div>
+
+        </div>
 
       </div>
 
