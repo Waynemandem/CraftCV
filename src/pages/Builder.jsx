@@ -18,10 +18,11 @@ import CorporateTemplate from '../components/resume/CorporateTemplate'
 import CreativeTemplate  from '../components/resume/CreativeTemplate'
 import { useProfile } from '../hooks/useProfile'
 import UpgradeButton from '../components/ui/UpgradeButton'
-import { useMutation, useQueryClient }
+import { useMutation, useQueryClient } from '@tanstack/react-query'
   
 export default function Builder() {
   // ── UI state
+  const queryClient = useQueryClient()
   const [step,        setStep]        = useState(1)
   const [menuOpen,    setMenuOpen]    = useState(false)
   const [showPreview, setShowPreview] = useState(false)
@@ -34,6 +35,28 @@ export default function Builder() {
   
 
   const TOTAL = 7
+
+
+  const saveMuutation = useMutation({
+    mutationFn: ({ isNew, data }) => 
+      isNew ? createResume(data) : updateResume(resumeId, data),
+    onSuccess: (result) => {  
+      // if new resume, store the ID 
+    if (!resumeId) setResumeId(result.id)  
+    // refresh dashboard resume list in the background
+    queryClient.invalidateQueries({ queryKey: ['resumes'] }) 
+ 
+    setSaved(true)
+    setTimeout(() => setSaved(false), 3000)
+},
+
+    onError: (err) => {
+      alert('Failed to save: ' + err.message)
+    },
+  }) 
+ 
+
+
 
   // ── Resume store
   const {
