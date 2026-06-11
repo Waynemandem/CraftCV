@@ -61,6 +61,7 @@ export const deleteResume = async (id) => {
   if (error) throw error
 }
 
+// fetch resume by Id
 export const fetchResumeById = async (id) => {
   const { data, error } = await supabase
     .from('resumes')
@@ -71,3 +72,5 @@ export const fetchResumeById = async (id) => {
   if (error) throw error
   return data
 }
+
+//

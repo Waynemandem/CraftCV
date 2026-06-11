@@ -204,6 +204,19 @@ const useResumeStore = create((set) => ({
     template:   'minimal',
   }),
 
+
+loadResume: (content, template) => set({
+  personal:   content.personal   || { name:'', title:'', email:'', phone:'', location:'', linkedin:'', portfolio:'' },
+  summary:    content.summary    || '',
+  experience: content.experience || [],
+  education:  content.education  || [],
+  skills:     content.skills     || [],
+  projects:   content.projects   || [],
+  certs:      content.certs      || [],
+  template:   template           || 'minimal',
+}),
+
+
 }))
 
 export default useResumeStore
