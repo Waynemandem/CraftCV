@@ -1,9 +1,13 @@
 // src/components/layout/Navbar.jsx
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import Button   from '../ui/Button'
 import useAuthStore from '../../store/authStore'
 
-const NAV_ITEMS = ['Features', 'Templates', 'Pricing']
+const NAV_ITEMS = [
+  { label: 'Features',  to: '/features'  },
+  { label: 'Templates', to: '/templates' },
+  { label: 'Pricing',   to: '/pricing'   },
+]
 
 export default function Navbar() {
   // ✅ correct — no destructuring, returns the value directly
@@ -24,23 +28,13 @@ export default function Navbar() {
         {/* Nav links — hidden on mobile */}
         <nav className="hidden md:flex items-center gap-8">
           {NAV_ITEMS.map(item => (
-            item === 'Pricing' ? (
-              <Link
-                key={item}
-                to="/pricing"
-                className="text-sm text-[#7A7893] hover:text-[#2C2C36] transition-colors duration-150"
-              >
-                {item}
+            <Link
+              key={item.to}
+              to={item.to}
+              className="text-sm text-[#7A7893] hover:text-[#2C2C36] transition-colors duration-150"
+            >
+                {item.label}
               </Link>
-            ) : (
-              <a
-                key={item}
-                href={`#${item.toLowerCase()}`}
-                className="text-sm text-[#7A7893] hover:text-[#2C2C36] transition-colors duration-150"
-              >
-                {item}
-              </a>
-            )
           ))}
         </nav>
 

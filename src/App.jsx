@@ -8,6 +8,8 @@ import Builder             from './pages/Builder'
 import ProtectedRoute      from './components/layout/ProtectedRoute'
 import useAuthStore        from './store/authStore'
 import Pricing from './pages/Pricing'
+import Features from "./pages/Features"
+import Templates from "./pages/Templates"
 
 export default function App() {
   const init = useAuthStore(s => s.init)
@@ -26,6 +28,8 @@ export default function App() {
         <ProtectedRoute><Builder /></ProtectedRoute>
       }/>
       <Route path="/pricing" element={<Pricing />} />
+      <Route path="/features" element={<Features />} />
+      <Route path="/templates" element={<Templates />} />
     </Routes>
   )
 }
