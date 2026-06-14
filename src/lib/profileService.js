@@ -16,22 +16,18 @@ export const fetchProfile = async () => {
   return data
 }
 
-// Initialize Paystack payment
-export const initializePayment = async (email, planCode) => {
-  const response = await fetch('https://api.paystack.co/transaction/initialize', {
+
+// ✅ Now calls our secure serverless function instead of Paystack directly
+export const initializePayment = async (email) => {
+  const response = await fetch('/api/paystack-init', {
     method: 'POST',
-    headers: {
-      'Content-Type':  'application/json',
-      'Authorization': `Bearer ${import.meta.env.VITE_PAYSTACK_PUBLIC_KEY}`,
-    },
-    body: JSON.stringify({
-      email,
-      plan:   planCode,
-      amount: 890000,  // ₦8,900 in kobo
-    }),
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
   })
 
   const data = await response.json()
-  if (!data.status) throw new Error(data.message)
-  return data.data.authorization_url
+
+  if (!response.ok) throw new Error(data.error || 'Payment initialization failed')
+
+  return data.url  // Paystack checkout URL
 }

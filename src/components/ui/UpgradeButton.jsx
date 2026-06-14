@@ -1,15 +1,14 @@
 // src/components/ui/UpgradeButton.jsx
-import { useState } from 'react'
-import { useProfile } from '../../hooks/useProfile'
-import useAuthStore from '../../store/authStore'
-import { initializePayment } from '../../lib/profileService'
+import { useState }           from 'react'
+import { useProfile }         from '../../hooks/useProfile'
+import useAuthStore           from '../../store/authStore'
+import { initializePayment }  from '../../lib/profileService'
 
 export default function UpgradeButton({ size = 'md', fullWidth = false }) {
-  const { isPro } = useProfile()
-  const user      = useAuthStore(s => s.user)
+  const { isPro }   = useProfile()
+  const user        = useAuthStore(s => s.user)
   const [loading, setLoading] = useState(false)
 
-  // Already Pro — show badge
   if (isPro) {
     return (
       <span style={{
@@ -28,11 +27,8 @@ export default function UpgradeButton({ size = 'md', fullWidth = false }) {
     if (!user?.email) return
     setLoading(true)
     try {
-      const url = await initializePayment(
-        user.email,
-        import.meta.env.VITE_PAYSTACK_PLAN_CODE
-      )
-      // Redirect to Paystack checkout
+      // ✅ Just pass email — server handles plan code and secret key
+      const url = await initializePayment(user.email)
       window.location.href = url
     } catch (err) {
       alert('Could not start payment: ' + err.message)
@@ -51,7 +47,7 @@ export default function UpgradeButton({ size = 'md', fullWidth = false }) {
       onClick={handleUpgrade}
       disabled={loading}
       style={{
-        background: loading ? '#ccc' : '#3D2B6B',
+        background: loading ? '#9B8DC0' : '#3D2B6B',
         color: '#fff', border: 'none',
         borderRadius: 8, fontWeight: 600,
         cursor: loading ? 'not-allowed' : 'pointer',
@@ -61,7 +57,7 @@ export default function UpgradeButton({ size = 'md', fullWidth = false }) {
         ...sizes[size],
       }}
     >
-      {loading ? 'Redirecting...' : '✦ Upgrade to Pro — ₦8,900/mo'}
+      {loading ? 'Redirecting to Paystack...' : '✦ Upgrade to Pro — ₦8,900/mo'}
     </button>
   )
 }
