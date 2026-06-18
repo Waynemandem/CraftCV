@@ -1,9 +1,6 @@
 // src/pages/Templates.jsx
 import { Link }          from 'react-router-dom'
 import Navbar            from '../components/layout/Navbar'
-import MinimalTemplate    from '../components/resume/MinimalTemplate'
-import CorporateTemplate  from '../components/resume/CorporateTemplate'
-import CreativeTemplate   from '../components/resume/CreativeTemplate'
 
 const TEMPLATES = [
   {
@@ -17,7 +14,7 @@ const TEMPLATES = [
     bestFor:  ['Software Engineers', 'Data Scientists', 'Product Managers', 'Finance Roles'],
     features: ['ATS optimised', 'Clean typography', 'Skills badge row', 'Generous whitespace'],
     color:    '#3D2B6B',
-    preview:  <MinimalTemplate />,
+    preview:  <MinimalPreviewPage />,
   },
   {
     id:       'corporate',
@@ -30,7 +27,7 @@ const TEMPLATES = [
     bestFor:  ['Business Analysts', 'Marketing Managers', 'Sales Leaders', 'Operations Roles'],
     features: ['Dark sidebar accent', 'Two-column layout', 'Skills list with dots', 'Contact sidebar'],
     color:    '#2C2C36',
-    preview:  <CorporateTemplate />,
+    preview:  <CorporatePreviewPage />,
   },
   {
     id:       'creative',
@@ -43,16 +40,16 @@ const TEMPLATES = [
     bestFor:  ['UI/UX Designers', 'Marketers', 'Content Creators', 'Brand Strategists'],
     features: ['Coloured header block', 'Contact pill row', 'Skills as badges', 'Modern two-col body'],
     color:    '#5B3FA6',
-    preview:  <CreativeTemplate />,
+    preview:  <CreativePreviewPage />,
   },
 ]
 
 // Small inline preview components used only on this page
-function MinimalTemplate() {
+function MinimalPreviewPage() {
   return (
     <div className="w-full h-full p-4 text-left overflow-hidden bg-white">
       <div className="border-b border-[#E4E2EE] pb-3 mb-3">
-        <p className="text-sm font-bold text-[#1A1A22]">Alex Johnson</p>
+        <p className="text-sm font-bold text-[#1A1A22]">Olawale Chukwu</p>
         <p className="text-xs text-[#5B3FA6]">Senior Frontend Engineer</p>
         <div className="flex gap-3 mt-1">
           <span className="text-[9px] text-[#7A7893]">alex@email.com</span>
@@ -87,7 +84,7 @@ function MinimalTemplate() {
   )
 }
 
-function CorporateTemplate() {
+function CorporatePreviewPage() {
   return (
     <div className="w-full h-full flex overflow-hidden text-left">
       <div className="w-[38%] bg-[#2C2C36] p-3 flex flex-col gap-2.5">
@@ -138,7 +135,7 @@ function CorporateTemplate() {
   )
 }
 
-function CreativeTemplate() {
+function CreativePreviewPage() {
   return (
     <div className="w-full h-full overflow-hidden text-left">
       <div className="bg-[#3D2B6B] px-4 py-3 mb-2">
