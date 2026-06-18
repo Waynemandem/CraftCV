@@ -52,7 +52,7 @@ function MinimalPreviewPage() {
         <p className="text-sm font-bold text-[#1A1A22]">Olawale Chukwu</p>
         <p className="text-xs text-[#5B3FA6]">Senior Frontend Engineer</p>
         <div className="flex gap-3 mt-1">
-          <span className="text-[9px] text-[#7A7893]">alex@email.com</span>
+          <span className="text-[9px] text-[#7A7893]">Olachukwu2026@email.com</span>
           <span className="text-[9px] text-[#7A7893]">Lagos, Nigeria</span>
         </div>
       </div>

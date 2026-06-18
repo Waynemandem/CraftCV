@@ -31,7 +31,7 @@ export default function UpgradeButton({ size = 'md', fullWidth = false }) {
       const url = await initializePayment(user.email)
       window.location.href = url
     } catch (err) {
-      alert('Could not start payment: ' + err.message)
+      alert('Could not start payment: ' + err.message) //this is a simple alert, you might want to handle this more gracefully in a real app
     }
     setLoading(false)
   }
