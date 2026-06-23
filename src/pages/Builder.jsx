@@ -87,17 +87,25 @@ export default function Builder() {
     `,
   })
 
+  // ── Mobile-safe download handler ──
+  // Forces preview to render before print fires, so mobile browsers
+  // don't try to print a hidden/zero-height element (causes blank PDF)
+  const handleDownloadClick = () => {
+    setShowPreview(true)
+    setTimeout(() => {
+      handlePrint()
+    }, 150)
+  }
+
   // ── Save mutation via TanStack Query ──
   const saveMutation = useMutation({
     mutationFn: ({ isNew, data }) =>
       isNew ? createResume(data) : updateResume(resumeId, data),
 
     onSuccess: (result) => {
-      // If new resume, save the returned ID for future updates
       if (!resumeId && result?.id) {
         setResumeId(result.id)
       }
-      // Refresh dashboard resume list in background
       queryClient.invalidateQueries({ queryKey: ['resumes'] })
     },
 
@@ -134,7 +142,6 @@ export default function Builder() {
     }
   }
 
-  // ── Save button label helper
   const saveLabel = () => {
     if (saveMutation.isPending) return 'Saving...'
     if (saveMutation.isSuccess) return '✓ Saved'
@@ -151,7 +158,6 @@ export default function Builder() {
           Orbit<span className="text-[#3D2B6B]">CV</span>
         </Link>
 
-        {/* Step indicator — desktop only */}
         <div className="hidden md:block">
           <StepIndicator current={step} />
         </div>
@@ -181,9 +187,9 @@ export default function Builder() {
             {saveLabel()}
           </button>
 
-          {/* Download PDF — desktop only */}
+          {/* Download PDF — desktop only — now uses handleDownloadClick */}
           <button
-            onClick={handlePrint}
+            onClick={handleDownloadClick}
             className="hidden md:block text-sm font-semibold text-white bg-[#3D2B6B] px-4 py-2 rounded-md hover:bg-[#2e2053] transition-colors"
           >
             Download PDF
@@ -254,9 +260,9 @@ export default function Builder() {
                   </button>
                 </div>
 
-                {/* Download in menu */}
+                {/* Download in menu — now uses handleDownloadClick */}
                 <button
-                  onClick={() => { handlePrint(); setMenuOpen(false) }}
+                  onClick={() => { handleDownloadClick(); setMenuOpen(false) }}
                   className="w-full flex items-center gap-2 px-4 py-3 text-sm font-medium text-[#3D2B6B] hover:bg-[#F8F7FC] transition-colors"
                 >
                   ↓ Download PDF

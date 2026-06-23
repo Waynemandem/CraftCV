@@ -19,16 +19,32 @@ body {
 }
 
 @media print {
-  /* Hide everything except the resume */
-  body > * { display: none !important; }
-  #resume-preview { display: block !important; }
+  /* Hide everything by default */
+  body * {
+    visibility: hidden;
+  }
 
-  /* Remove borders and shadows for print */
+  /* Show ONLY the resume preview and its children */
+  #resume-preview,
+  #resume-preview * {
+    visibility: visible;
+  }
+
+  /* Position it to fill the page properly */
   #resume-preview {
-    box-shadow: none !important;
-    border: none !important;
+    position: absolute;
+    left: 0;
+    top: 0;
     width: 100% !important;
     min-height: auto !important;
-    padding: 32px !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 24px !important;
+    margin: 0 !important;
+  }
+
+  @page {
+    size: A4;
+    margin: 0;
   }
 }
