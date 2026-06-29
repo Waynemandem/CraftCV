@@ -301,15 +301,24 @@ export default function Dashboard() {
       </main>
 
       {/* Footer */}
-      <footer className="max-w-6xl mx-auto px-5 md:px-8 py-6 mt-10 border-t border-[#E4E2EE]">
-        <p className="text-xs text-[#7A7893]">
-          Built by{' '}
-          <a href="https://axiondigital.vercel.app" className="text-[#3D2B6B] hover:underline">
-            Axion Digital
-          </a>
-        </p>
-      </footer>
-
+     <footer className="max-w-6xl mx-auto px-5 md:px-8 py-6 mt-10 border-t border-[#E4E2EE]">
+  <div className="flex flex-col md:flex-row items-center justify-between gap-3">
+    <p className="text-xs text-[#7A7893]">
+      Built by{' '}
+      <a href="https://axiondigital.vercel.app" className="text-[#3D2B6B] hover:underline">
+        Axion Digital
+      </a>
+    </p>
+    <div className="flex items-center gap-4">
+      <Link to="/privacy" className="text-xs text-[#7A7893] hover:text-[#3D2B6B] transition-colors">
+        Privacy Policy
+      </Link>
+      <Link to="/terms" className="text-xs text-[#7A7893] hover:text-[#3D2B6B] transition-colors">
+        Terms of Service
+      </Link>
+    </div>
+  </div>
+</footer>
     </div>
   )
 }

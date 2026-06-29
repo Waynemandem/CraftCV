@@ -254,20 +254,24 @@ export default function Features() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-[#E4E2EE] bg-white">
-        <div className="max-w-6xl mx-auto px-6 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          <span className="font-bold text-[#2C2C36]">
-            Orbit<span className="text-[#3D2B6B]">CV</span>
-          </span>
-          <p className="text-xs text-[#7A7893]">
-            Built by{' '}
-            <a href="https://axiondigital.vercel.app" className="text-[#3D2B6B] hover:underline">
-              Axion Digital
-            </a>
-          </p>
-          <p className="text-xs text-[#7A7893]">© 2026 OrbitCV. All rights reserved.</p>
-        </div>
-      </footer>
+     <footer className="max-w-6xl mx-auto px-5 md:px-8 py-6 mt-10 border-t border-[#E4E2EE]">
+  <div className="flex flex-col md:flex-row items-center justify-between gap-3">
+    <p className="text-xs text-[#7A7893]">
+      Built by{' '}
+      <a href="https://axiondigital.vercel.app" className="text-[#3D2B6B] hover:underline">
+        Axion Digital
+      </a>
+    </p>
+    <div className="flex items-center gap-4">
+      <Link to="/privacy" className="text-xs text-[#7A7893] hover:text-[#3D2B6B] transition-colors">
+        Privacy Policy
+      </Link>
+      <Link to="/terms" className="text-xs text-[#7A7893] hover:text-[#3D2B6B] transition-colors">
+        Terms of Service
+      </Link>
+    </div>
+  </div>
+</footer>
     </div>
   )
 }
