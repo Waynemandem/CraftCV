@@ -12,7 +12,7 @@ import Features from "./pages/Features"
 import Templates from "./pages/Templates"
 import Privacy from "./pages/Privacy"
 import Terms from "./pages/Terms"
-import PaymentSuccess from "./Pages/PaymentSuccess"
+import PaymentSuccess from "./pages/PaymentSuccess"
 
 export default function App() {
   const init = useAuthStore(s => s.init)

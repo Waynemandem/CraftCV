@@ -1,4 +1,3 @@
-// src/pages/PaymentSuccess.jsx
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
@@ -19,7 +18,7 @@ export default function PaymentSuccess() {
     }, 2000)
 
     return () => clearTimeout(timer)
-  }, [])
+  }, [queryClient])
 
   return (
     <div className="min-h-screen bg-[#F8F7FC] flex items-center justify-center px-6">
