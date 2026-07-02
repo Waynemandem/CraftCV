@@ -12,6 +12,7 @@ import Features from "./pages/Features"
 import Templates from "./pages/Templates"
 import Privacy from "./pages/Privacy"
 import Terms from "./pages/Terms"
+import PaymentSuccess from "./Pages/PaymentSuccess"
 
 export default function App() {
   const init = useAuthStore(s => s.init)
@@ -34,6 +35,7 @@ export default function App() {
       <Route path="/templates" element={<Templates />} />
       <Route path="/privacy" element={<Privacy />} />
       <Route path="/terms" element={<Terms />} />
+      <Route path="/paymentsuccess" element={<PaymentSuccess />}  />
     </Routes>
   )
 }

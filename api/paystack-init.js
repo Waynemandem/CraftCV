@@ -19,8 +19,13 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         email,
-        plan: process.env.PAYSTACK_PLAN_CODE,
-        // ✅ NO amount field here at all
+        amount:   890000,          // ₦8,900 in kobo
+        currency: 'NGN',
+        metadata: {
+          plan:       'pro',
+          cancel_action: 'https://orbitcv.vercel.app/dashboard',
+        },
+        callback_url: 'https://orbitcv.vercel.app/payment-success',
       }),
     })
 
