@@ -17,16 +17,16 @@ export default async function handler(req, res) {
         'Content-Type':  'application/json',
         'Authorization': `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
       },
-      body: JSON.stringify({
-        email,
-        amount:   890000,          // ₦8,900 in kobo
-        currency: 'NGN',
-        metadata: {
-          plan:       'pro',
-          cancel_action: 'https://orbitcv.vercel.app/dashboard',
-        },
-        callback_url: 'https://orbitcv.vercel.app/payment-success',
-      }),
+     body: JSON.stringify({
+  email,
+  amount:   10000,          // ₦100 in kobo (not 890000)
+  currency: 'NGN',
+  metadata: {
+    plan:       'pro',
+    cancel_action: 'https://orbitcv.vercel.app/dashboard',
+  },
+  callback_url: 'https://orbitcv.vercel.app/payment-success',
+}),
     })
 
     const data = await response.json()
