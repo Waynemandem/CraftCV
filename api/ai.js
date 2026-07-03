@@ -2,13 +2,39 @@
 // Vercel serverless function — secure Claude AI proxy
 // ANTHROPIC_API_KEY lives here only, never in the browser
 
+import { createClient } from '@supabase/supabase-js'
+
+const supabase = createClient(
+  process.env.VITE_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+)
+
+async function checkIfPro(userId) {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('plan')
+    .eq('id', userId)
+    .single()
+
+  if (error || !data) {
+    console.error('Supabase profile lookup error:', error)
+    return false
+  }
+
+  return data.plan === 'pro' || data.plan === 'agency'
+}
+
 export default async function handler(req, res) {
 
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  const { prompt } = req.body
+  const { prompt, userId } = req.body
+
+  if (!userId) {
+    return res.status(400).json({ error: 'User ID required' })
+  }
 
   if (!prompt) {
     return res.status(400).json({ error: 'Prompt is required' })
@@ -18,7 +44,43 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'API key not configured' })
   }
 
+  if (!process.env.VITE_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    return res.status(500).json({ error: 'Supabase credentials not configured' })
+  }
+
+  const now = Date.now()
+  const rateLimitWindow = 24 * 60 * 60 * 1000 // 24 hours
+
   try {
+    const { data: aiLogs, error: logError } = await supabase
+      .from('ai_logs')
+      .select('id')
+      .eq('user_id', userId)
+      .gt('created_at', new Date(now - rateLimitWindow).toISOString())
+
+    if (logError) {
+      console.error('Supabase ai_logs query error:', logError)
+      return res.status(500).json({ error: 'Unable to check rate limit' })
+    }
+
+    const isPro = await checkIfPro(userId)
+    const limit = isPro ? 60 : 2
+
+    if ((aiLogs || []).length >= limit) {
+      return res.status(429).json({
+        error: 'Daily AI limit reached. Upgrade to Pro for more.'
+      })
+    }
+
+    const { error: insertError } = await supabase
+      .from('ai_logs')
+      .insert({ user_id: userId })
+
+    if (insertError) {
+      console.error('Supabase ai_logs insert error:', insertError)
+      return res.status(500).json({ error: 'Unable to log AI request' })
+    }
+
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
