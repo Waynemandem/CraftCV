@@ -35,7 +35,7 @@ export default function App() {
       <Route path="/templates" element={<Templates />} />
       <Route path="/privacy" element={<Privacy />} />
       <Route path="/terms" element={<Terms />} />
-      <Route path="/paymentsuccess" element={<PaymentSuccess />}  />
+      <Route path="/payment-success" element={<PaymentSuccess />}  />
     </Routes>
   )
 }
