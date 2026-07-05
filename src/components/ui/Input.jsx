@@ -1,48 +1,38 @@
-// src/components/ui/Input
-// Reusable input with label + optional error message
-
-export default function Input ({
-    label,
-    type = 'text',
-    placeholder,
-    value,
-    onChange,
-    error,
-    hint,
-    required = false, 
+// src/components/ui/Input.jsx
+export default function Input({ 
+  label, 
+  placeholder, 
+  type = 'text', 
+  value, 
+  onChange, 
+  name,
+  required = false,
+  error = null,
+  disabled = false,
 }) {
-    return (
-        <div className="flex flex-col gap-1.5">
-            {label && (
-                <label className="text-sm font-medium text-[#2c2c36]">
-                    {label}
-                    {required && <span className="text-[#3d2b6b] ml-0.5">*</span>}
-                </label>
-            )}
-
-
-         <input 
-           type={type}
-           placholder={placeholder}
-           value={value}
-           onChange={onChange}
-           className={`
-            w-full px-3 py-2.5 text-sm rounded-md
-            border bg-white text-[##2C2C36]
-            placeholder:text-[#7A7893]
-            outline-none transition-all duration-150
-            focus:ring-2 focus:ring-[#3D2B6B]/20 focus:border-[#3D2B6B]
-            ${error ? 'border-red-400' : 'border-[#E4E2EE]'}
-            `}
-            />
-
-          {hint && !error && (
-          <p className="text-xs text-[#7A7893]">{hint}</p>
-          )}
-          {error && (
-          <p className="text-xs text-red-500">{error}</p>
-          )}
-
-        </div>
-    )
+  return (
+    <div className="w-full">
+      <label className="block text-sm font-medium text-[#2C2C36] mb-2">
+        {label}
+        {required && <span className="text-red-500 ml-1">*</span>}
+      </label>
+      <input
+        type={type}
+        name={name}
+        placeholder={placeholder}
+        value={value}
+        onChange={onChange}
+        disabled={disabled}
+        className={`
+          w-full px-4 py-2.5 border rounded-lg outline-none transition-all text-sm
+          placeholder-[#A0AEC0] text-[#1A1A22] font-medium
+          ${error
+            ? 'border-red-400 bg-red-50 focus:border-red-500 focus:ring-2 focus:ring-red-200'
+            : 'border-[#E4E2EE] focus:border-[#3D2B6B] focus:ring-2 focus:ring-[#3D2B6B]/10'
+          }
+          ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
+        `}
+      />
+    </div>
+  )
 }

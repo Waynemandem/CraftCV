@@ -30,7 +30,7 @@ export default async function handler(req, res) {
 
   if (hash !== signature) {
     console.log('❌ Signature mismatch')
-    return res.status(401).json({ error: 'Invalid signature' })
+    return res.status(401).json({ error: 'Unauthorzed' })
   }
 
   const event = req.body

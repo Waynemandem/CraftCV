@@ -3,6 +3,7 @@
 // ANTHROPIC_API_KEY lives here only, never in the browser
 
 import { createClient } from '@supabase/supabase-js'
+import { sanitizeHTML } from '../lib/validation'
 
 const supabase = createClient(
   process.env.VITE_SUPABASE_URL,
@@ -25,19 +26,30 @@ async function checkIfPro(userId) {
 }
 
 export default async function handler(req, res) {
+  //... auth check ...
 
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  const { prompt, userId } = req.body
+  let { prompt, userId } = req.body
+  prompt = sanitizeHTML(prompt) // Sanitize user input to prevent XSS
 
   if (!userId) {
     return res.status(400).json({ error: 'User ID required' })
-  }
+  }''
 
   if (!prompt) {
     return res.status(400).json({ error: 'Prompt is required' })
+  }
+
+  // check prompt length
+  if (prompt.length > 1000) {
+    return res.status(400).json({ error: 'Prompt is too long(max 1000 characters)' })
+  }
+
+  if (prompt.length < 10) {
+    return res.status(400).json({ error: 'Prompt is too short(min 10 characters)' })
   }
 
   if (!process.env.ANTHROPIC_API_KEY) {
