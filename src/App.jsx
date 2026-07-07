@@ -13,6 +13,7 @@ import Templates from "./pages/Templates"
 import Privacy from "./pages/Privacy"
 import Terms from "./pages/Terms"
 import PaymentSuccess from "./pages/PaymentSuccess"
+import NotFound from './pages/NotFound'
 
 export default function App() {
   const init = useAuthStore(s => s.init)
@@ -36,6 +37,7 @@ export default function App() {
       <Route path="/privacy" element={<Privacy />} />
       <Route path="/terms" element={<Terms />} />
       <Route path="/payment-success" element={<PaymentSuccess />}  />
+      <Route path="*" element={<NotFound />} />
     </Routes>
   )
 }
