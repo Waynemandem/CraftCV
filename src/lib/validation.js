@@ -77,7 +77,7 @@ export const sanitizeHTML = (str) => {
     .replace(/<embed[^>]*>/gi, '')
     .replace(/<object[^>]*>.*?<\/object>/gi, '')
   
-  return sanitized.trim()
+  return sanitized
 }
 
 /**
@@ -203,13 +203,14 @@ export const sanitizeResumeContent = (content) => {
   if (sanitized.personal) {
     sanitized.personal = {
       ...sanitized.personal,
-      name: sanitizeHTML(sanitized.personal.name),
-      email: sanitizeHTML(sanitized.personal.email)?.toLowerCase(),
-      phone: sanitizeHTML(sanitized.personal.phone),
-      location: sanitizeHTML(sanitized.personal.location),
-      portfolio: sanitizeHTML(sanitized.personal.portfolio),
+      name:     sanitizeHTML(sanitized.personal.name)?.trim(),      // ✅ trim only here
+      email:    sanitizeHTML(sanitized.personal.email)?.trim()?.toLowerCase(),
+      phone:    sanitizeHTML(sanitized.personal.phone)?.trim(),
+      location: sanitizeHTML(sanitized.personal.location)?.trim(),
+      portfolio: sanitizeHTML(sanitized.personal.portfolio)?.trim(),
     }
   }
+  
   
   if (sanitized.summary) {
     sanitized.summary = sanitizeHTML(sanitized.summary)
