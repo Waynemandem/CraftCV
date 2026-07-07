@@ -18,7 +18,7 @@ import NotFound from './pages/NotFound'
 export default function App() {
   const init = useAuthStore(s => s.init)
 
-  // Restore session on app load
+  // Restore  session on app load
   useEffect(() => { init() }, [])
 
   return (

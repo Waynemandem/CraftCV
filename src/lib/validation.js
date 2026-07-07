@@ -86,27 +86,29 @@ export const sanitizeHTML = (str) => {
 export const validateField = (field, value, rule) => {
   if (!value && !rule.required) return { valid: true }
   
-  if (!value) {
+  // Trim whitespace for validation
+  const trimmedValue = value.trim()
+  
+  if (!trimmedValue) {
     return { valid: false, error: `${field} is required` }
   }
   
-  // Check length
-  if (rule.min && value.length < rule.min) {
+  // Check length AFTER trimming
+  if (rule.min && trimmedValue.length < rule.min) {
     return { valid: false, error: `${field} must be at least ${rule.min} characters` }
   }
   
-  if (rule.max && value.length > rule.max) {
+  if (rule.max && trimmedValue.length > rule.max) {
     return { valid: false, error: `${field} must not exceed ${rule.max} characters` }
   }
   
   // Check regex pattern
-  if (rule.regex && !rule.regex.test(value)) {
+  if (rule.regex && !rule.regex.test(trimmedValue)) {
     return { valid: false, error: rule.error }
   }
   
   return { valid: true }
 }
-
 /**
  * Validate entire resume content object
  */

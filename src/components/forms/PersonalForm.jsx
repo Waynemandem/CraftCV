@@ -9,44 +9,47 @@ export default function PersonalForm() {
   const { personal, updatePersonal } = useResumeStore()
   const [errors, setErrors] = useState({})
 
+  // Sanitize + update (NO validation on keystroke)
   const handleChange = (e) => {
     const { name, value } = e.target
-
-    // Sanitize as user types (remove script tags instantly)
     const sanitized = sanitizeHTML(value)
+    updatePersonal({ [name]: sanitized })
+  }
 
-    // Validate
+  // Validate ONLY when user leaves the field (onBlur)
+  const handleBlur = (e) => {
+    const { name, value } = e.target
     const rule = ValidationRules[name]
+    
     if (rule) {
-      const validation = validateField(name, sanitized, rule)
+      const validation = validateField(name, value, rule)
       if (!validation.valid) {
         setErrors(prev => ({ ...prev, [name]: validation.error }))
       } else {
         setErrors(prev => ({ ...prev, [name]: null }))
       }
     }
-
-    // Update store
-    updatePersonal({ [name]: sanitized })
   }
 
   const handlePhoneChange = (e) => {
     let value = e.target.value
 
     // Auto-format Nigerian phone numbers
-    // 09012345678 → +2349012345678
     if (value.startsWith('0')) {
       value = '+234' + value.slice(1)
     }
 
+    updatePersonal({ phone: value })
+  }
+
+  const handlePhoneBlur = (e) => {
+    const value = e.target.value
     const validation = validateField('phone', value, ValidationRules.phone)
     if (!validation.valid) {
       setErrors(prev => ({ ...prev, phone: validation.error }))
     } else {
       setErrors(prev => ({ ...prev, phone: null }))
     }
-
-    updatePersonal({ phone: value })
   }
 
   return (
@@ -63,10 +66,11 @@ export default function PersonalForm() {
         <div>
           <Input
             label="Full Name"
-            placeholder="" // stop filling ur app with unless placeholder
+            placeholder=""
             required
             value={personal.name || ''}
             onChange={handleChange}
+            onBlur={handleBlur}
             name="name"
             error={errors.name}
           />
@@ -79,9 +83,11 @@ export default function PersonalForm() {
         <div>
           <Input
             label="Job Title"
-            placeholder="" 
+            placeholder=""
             value={personal.title || ''}
-            onChange={(e) => updatePersonal({ title: sanitizeHTML(e.target.value) })}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            name="title"
           />
         </div>
 
@@ -94,6 +100,7 @@ export default function PersonalForm() {
             required
             value={personal.email || ''}
             onChange={handleChange}
+            onBlur={handleBlur}
             name="email"
             error={errors.email}
           />
@@ -106,9 +113,10 @@ export default function PersonalForm() {
         <div>
           <Input
             label="Phone (Optional - Nigerian)"
-            placeholder="09012345678 or +2349012345678"
+            placeholder="090 or +234"
             value={personal.phone || ''}
             onChange={handlePhoneChange}
+            onBlur={handlePhoneBlur}
             error={errors.phone}
           />
           {errors.phone && (
@@ -122,7 +130,7 @@ export default function PersonalForm() {
             label="Location"
             placeholder=""
             value={personal.location || ''}
-            onChange={(e) => updatePersonal({ location: sanitizeHTML(e.target.value) })}
+            onChange={handleChange}
           />
         </div>
 
@@ -130,9 +138,11 @@ export default function PersonalForm() {
         <div>
           <Input
             label="LinkedIn URL (Optional)"
-            placeholder="linkedin.com/in/chioma"
+            placeholder=""
             value={personal.linkedin || ''}
-            onChange={(e) => updatePersonal({ linkedin: sanitizeHTML(e.target.value) })}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            name="linkedin"
             error={errors.linkedin}
           />
           {errors.linkedin && (
@@ -145,9 +155,10 @@ export default function PersonalForm() {
       <div>
         <Input
           label="Portfolio / Website (Optional)"
-          placeholder="https://www.chioma.com"
+          placeholder=""
           value={personal.portfolio || ''}
           onChange={handleChange}
+          onBlur={handleBlur}
           name="portfolio"
           error={errors.portfolio}
         />

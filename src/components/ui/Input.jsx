@@ -5,6 +5,7 @@ export default function Input({
   type = 'text', 
   value, 
   onChange, 
+  onBlur,
   name,
   required = false,
   error = null,
@@ -22,6 +23,7 @@ export default function Input({
         placeholder={placeholder}
         value={value}
         onChange={onChange}
+        onBlur={onBlur}
         disabled={disabled}
         className={`
           w-full px-4 py-2.5 border rounded-lg outline-none transition-all text-sm

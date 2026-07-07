@@ -3,21 +3,13 @@ import { Navigate } from 'react-router-dom'
 import useAuthStore from '../../store/authStore'
 
 export default function ProtectedRoute({ children }) {
-  const { user, loading } = useAuthStore()
+  const user = useAuthStore(s => s.user)
 
-  // Still checking session — show nothing yet
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#F8F7FC]">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-6 h-6 border-2 border-[#3D2B6B] border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm text-[#7A7893]">Loading...</p>
-        </div>
-      </div>
-    )
+  // If no user, redirect to login (not 404)
+  if (!user) {
+    return <Navigate to="/auth" replace />
   }
 
-  if (!user) return <Navigate to="/auth" replace />
-
+  // If user exists, show the component
   return children
 }
