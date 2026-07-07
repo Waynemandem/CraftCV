@@ -63,7 +63,7 @@ export default function PersonalForm() {
         <div>
           <Input
             label="Full Name"
-            placeholder="e.g., Chioma Okafor"
+            placeholder="" // stop filling ur app with unless placeholder
             required
             value={personal.name || ''}
             onChange={handleChange}
@@ -79,7 +79,7 @@ export default function PersonalForm() {
         <div>
           <Input
             label="Job Title"
-            placeholder="e.g., Frontend Developer"
+            placeholder="" 
             value={personal.title || ''}
             onChange={(e) => updatePersonal({ title: sanitizeHTML(e.target.value) })}
           />
@@ -90,7 +90,7 @@ export default function PersonalForm() {
           <Input
             label="Email"
             type="email"
-            placeholder="e.g., wayne@example.com"
+            placeholder=""
             required
             value={personal.email || ''}
             onChange={handleChange}
@@ -120,7 +120,7 @@ export default function PersonalForm() {
         <div>
           <Input
             label="Location"
-            placeholder="e.g., Lagos, Nigeria"
+            placeholder=""
             value={personal.location || ''}
             onChange={(e) => updatePersonal({ location: sanitizeHTML(e.target.value) })}
           />
@@ -145,7 +145,7 @@ export default function PersonalForm() {
       <div>
         <Input
           label="Portfolio / Website (Optional)"
-          placeholder="https://waynedev.com"
+          placeholder="https://www.chioma.com"
           value={personal.portfolio || ''}
           onChange={handleChange}
           name="portfolio"
