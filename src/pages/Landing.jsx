@@ -335,6 +335,9 @@ export default function Landing() {
       <Link to="/terms" className="text-xs text-[#7A7893] hover:text-[#3D2B6B] transition-colors">
         Terms of Service
       </Link>
+      <Link to="/support" className="text-xs text-[#7A7893] hover:text-[#3D2B6B] transition-colors">
+        Support
+      </Link>
     </div>
   </div>
 </footer>

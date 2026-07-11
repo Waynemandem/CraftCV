@@ -105,6 +105,9 @@ export default function Privacy() {
           <Link to="/" className="text-sm text-[#3D2B6B] hover:underline">
             ← Back to home
           </Link>
+          <Link to="/support" className="text-xs text-[#7A7893] hover:text-[#3D2B6B] transition-colors">
+            Support
+          </Link>
         </div>
       </main>
     </div>
