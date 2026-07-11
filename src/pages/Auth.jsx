@@ -14,6 +14,8 @@ export default function Auth() {
   const { signUp, signIn, signInWithGoogle } = useAuthStore()
   const navigate = useNavigate()
 
+  const [mode, setMode] = useState('signin') // 'signin' | 'signup' | 'forgot'
+
   const update = (field) => (e) =>
     setForm(p => ({ ...p, [field]: e.target.value }))
 
@@ -111,7 +113,7 @@ export default function Auth() {
           {/* Error message */}
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 rounded-md mb-4">
-              {error}
+            b  {error}
             </div>
           )}
 
@@ -125,6 +127,16 @@ export default function Auth() {
             <Input label="Password" type="password" placeholder="••••••••"
               value={form.password} onChange={update('password')}
               hint={tab === 'signup' ? 'Minimum 8 characters' : ''} required />
+           
+            <div className="flex justify-end mt-1">
+             <button
+                type="button"
+                onClick={() => setMode('forgot')}
+                className="text-xs text-[#3D2B6B] hover:underline"
+              >
+                 Forgot password?
+             </button>
+            </div>
 
             {tab === 'login' && (
               <div className="text-right -mt-1">

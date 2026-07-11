@@ -14,6 +14,8 @@ import Privacy from "./pages/Privacy"
 import Terms from "./pages/Terms"
 import PaymentSuccess from "./pages/PaymentSuccess"
 import NotFound from './pages/NotFound'
+import ResetPassword from './pages/ResetPassword'
+import ForgotPasswordForm from './components/auth/ForgotPasswordForm'
 
 export default function App() {
   const init = useAuthStore(s => s.init)
@@ -37,6 +39,8 @@ export default function App() {
       <Route path="/privacy" element={<Privacy />} />
       <Route path="/terms" element={<Terms />} />
       <Route path="/payment-success" element={<PaymentSuccess />}  />
+      <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/forgot-password" element={<ForgotPasswordForm onBack={() => window.location.href = '/auth'} />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   )
