@@ -1,123 +1,113 @@
 // api/ai.js
-// Vercel serverless function — secure Claude AI proxy
-// ANTHROPIC_API_KEY lives here only, never in the browser
+// Uses OpenAI gpt-4o-mini — cheap, fast, good enough for resume text tasks
 
 import { createClient } from '@supabase/supabase-js'
-import { sanitizeHTML } from '../lib/validation'
 
 const supabase = createClient(
   process.env.VITE_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 )
 
-async function checkIfPro(userId) {
-  const { data, error } = await supabase
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' })
+  }
+
+  // ── Auth check ──
+  const token = req.headers.authorization?.split('Bearer ')[1]
+  if (!token) {
+    return res.status(401).json({ error: 'Unauthorized' })
+  }
+
+  const { data: authData, error: authError } = await supabase.auth.getUser(token)
+  if (authError || !authData.user) {
+    return res.status(401).json({ error: 'Invalid token' })
+  }
+
+  const userId = authData.user.id
+
+  // ── Rate limiting (keep your existing logic) ──
+  const { data: profile } = await supabase
     .from('profiles')
     .select('plan')
     .eq('id', userId)
     .single()
 
-  if (error || !data) {
-    console.error('Supabase profile lookup error:', error)
-    return false
+  const isPro = profile?.plan === 'pro'
+  const limit = isPro ? 100 : 10
+
+  const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+  const { data: aiLogs } = await supabase
+    .from('ai_logs')
+    .select('id')
+    .eq('user_id', userId)
+    .gt('created_at', twentyFourHoursAgo)
+
+  if (aiLogs && aiLogs.length >= limit) {
+    return res.status(429).json({
+      error: `Daily AI limit reached (${limit}/day). ${!isPro ? 'Upgrade to Pro for more.' : ''}`,
+    })
   }
 
-  return data.plan === 'pro' || data.plan === 'agency'
-}
+  // ── Get and sanitize prompt ──
+  let { prompt } = req.body
 
-export default async function handler(req, res) {
-  //... auth check ...
-
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' })
-  }
-
-  let { prompt, userId } = req.body
-  prompt = sanitizeHTML(prompt) // Sanitize user input to prevent XSS
-
-  if (!userId) {
-    return res.status(400).json({ error: 'User ID required' })
-  }''
-
-  if (!prompt) {
+  if (!prompt || typeof prompt !== 'string') {
     return res.status(400).json({ error: 'Prompt is required' })
   }
 
-  // check prompt length
-  if (prompt.length > 1000) {
-    return res.status(400).json({ error: 'Prompt is too long(max 1000 characters)' })
+  if (prompt.length > 5000) {
+    return res.status(400).json({ error: 'Prompt too long (max 5000 chars)' })
   }
 
-  if (prompt.length < 10) {
-    return res.status(400).json({ error: 'Prompt is too short(min 10 characters)' })
+  if (prompt.length < 5) {
+    return res.status(400).json({ error: 'Prompt too short' })
   }
-
-  if (!process.env.ANTHROPIC_API_KEY) {
-    return res.status(500).json({ error: 'API key not configured' })
-  }
-
-  if (!process.env.VITE_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    return res.status(500).json({ error: 'Supabase credentials not configured' })
-  }
-
-  const now = Date.now()
-  const rateLimitWindow = 24 * 60 * 60 * 1000 // 24 hours
 
   try {
-    const { data: aiLogs, error: logError } = await supabase
-      .from('ai_logs')
-      .select('id')
-      .eq('user_id', userId)
-      .gt('created_at', new Date(now - rateLimitWindow).toISOString())
-
-    if (logError) {
-      console.error('Supabase ai_logs query error:', logError)
-      return res.status(500).json({ error: 'Unable to check rate limit' })
-    }
-
-    const isPro = await checkIfPro(userId)
-    const limit = isPro ? 60 : 2
-
-    if ((aiLogs || []).length >= limit) {
-      return res.status(429).json({
-        error: 'Daily AI limit reached. Upgrade to Pro for more.'
-      })
-    }
-
-    const { error: insertError } = await supabase
-      .from('ai_logs')
-      .insert({ user_id: userId })
-
-    if (insertError) {
-      console.error('Supabase ai_logs insert error:', insertError)
-      return res.status(500).json({ error: 'Unable to log AI request' })
-    }
-
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Content-Type':      'application/json',
-        'x-api-key':         process.env.ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01',
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
-        model:      'claude-sonnet-4-20250514',
+        model: 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a professional resume writing assistant. Give concise, ATS-friendly, results-oriented text. No preamble, no markdown, just the requested content directly.',
+          },
+          {
+            role: 'user',
+            content: prompt,
+          },
+        ],
         max_tokens: 500,
-        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.7,
       }),
     })
 
     const data = await response.json()
 
     if (!response.ok) {
-      return res.status(response.status).json({
-        error: data.error?.message || 'Claude request failed'
-      })
+      console.error('OpenAI error:', data)
+      return res.status(response.status).json({ error: data.error?.message || 'AI request failed' })
     }
 
-    return res.status(200).json({ result: data.content[0].text })
+    const result = data.choices?.[0]?.message?.content?.trim()
+
+    if (!result) {
+      return res.status(500).json({ error: 'No response from AI' })
+    }
+
+    // Log this AI call for rate limiting
+    await supabase.from('ai_logs').insert({ user_id: userId })
+
+    return res.status(200).json({ result })
 
   } catch (err) {
+    console.error('AI proxy error:', err)
     return res.status(500).json({ error: err.message })
   }
 }
