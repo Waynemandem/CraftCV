@@ -31,9 +31,6 @@ export default function Builder() {
   const [resumeId, setResumeId] = useState(null)
   const [saveName, setSaveName] = useState('My Resume')
 
-  const isResumeUnlocked = existingResume?.is_unlocked || false
-  const hasAccess = isPro || isResumeUnlocked
-
   const TOTAL = 7
 
   // ── Resume store
@@ -60,6 +57,11 @@ export default function Builder() {
     enabled:  !!editId,
     staleTime: Infinity,
   })
+  
+  
+  const isResumeUnlocked = existingResume?.is_unlocked || false
+  const hasAccess = isPro || isResumeUnlocked
+
 
   // Load existing resume into store when data arrives
   useEffect(() => {
