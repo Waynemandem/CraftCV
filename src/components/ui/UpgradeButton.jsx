@@ -57,7 +57,7 @@ export default function UpgradeButton({ size = 'md', fullWidth = false }) {
         ...sizes[size],
       }}
     >
-      {loading ? 'Redirecting to Paystack...' : '✦ Upgrade to Pro — ₦8,900/mo'}
+      {loading ? 'Redirecting to Paystack...' : '✦ Upgrade to Pro — ₦5,000/mo'}
     </button>
   )
 }
