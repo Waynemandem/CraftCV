@@ -19,7 +19,7 @@ export default async function handler(req, res) {
       },
      body: JSON.stringify({
   email,
-  amount:   10000,          // ₦100 in kobo (not 890000)
+  amount:   500000,          // ₦5,000 in kobo 
   currency: 'NGN',
   metadata: {
     plan:       'pro',

@@ -46,7 +46,7 @@ export default async function handler(req, res) {
       console.log('Reference:', reference)
 
       // Only upgrade if correct amount paid (or more)
-      if (amount >= 10000) {  // ₦5,000 in kobo
+      if (amount >= 500000) {  // ₦5,000 in kobo
         console.log('✓ Amount is valid, upgrading...')
         
         const { data: profile, error: findError } = await supabase
