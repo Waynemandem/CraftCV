@@ -185,3 +185,21 @@ export const duplicateResume = async (id) => {
     template: original.template,
   })
 }
+
+
+export const initializeSingleUnlock = async (resumeId) => {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  const response = await fetch('/api/paystack-init-single', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: user.email, resumeId }),
+  })
+
+  const data = await response.json()
+
+  if (!response.ok) throw new Error(data.error || 'Failed to initialize payment')
+
+  return data.url
+}

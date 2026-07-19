@@ -3,7 +3,7 @@ import { useState, useRef, useEffect }            from 'react'
 import { Link, useSearchParams }                  from 'react-router-dom'
 import { useReactToPrint }                        from 'react-to-print'
 import { useMutation, useQuery, useQueryClient }  from '@tanstack/react-query'
-import { createResume, updateResume }             from '../lib/resumeService'
+import { createResume, updateResume, initializeSingleUnlock }    from '../lib/resumeService'
 import { fetchResumeById }                        from '../lib/resumeService'
 import useResumeStore                             from '../store/resumeStore'
 import { useProfile }                             from '../hooks/useProfile'
@@ -30,6 +30,9 @@ export default function Builder() {
   // ── Save state
   const [resumeId, setResumeId] = useState(null)
   const [saveName, setSaveName] = useState('My Resume')
+
+  const isResumeUnlocked = existingResume?.is_unlocked || false
+  const hasAccess = isPro || isResumeUnlocked
 
   const TOTAL = 7
 
@@ -322,7 +325,7 @@ export default function Builder() {
           {/* Template switcher */}
           <div className="flex gap-2 mb-4 bg-white border border-[#E4E2EE] rounded-lg p-1">
             {['minimal', 'corporate', 'creative'].map(t => {
-              const isLocked = !isPro && t !== 'minimal'
+              const isLocked = !hasAccess && t !== 'minimal'
               return (
                 <button
                   key={t}
@@ -354,6 +357,22 @@ export default function Builder() {
               <UpgradeButton size="sm" />
             </div>
           )}
+
+          {!hasAccess && resumeId && (
+          <button
+             onClick={async () => {
+                try {
+                  const url = await initializeSingleUnlock(resumeId)
+                  window.location.href = url
+                } catch (err) {
+                  alert('Could not start payment: ' + err.message)
+                }
+              }}
+              className="text-xs font-semibold text-[#3D2B6B] border border-[#3D2B6B] px-4 py-2 rounded-md hover:bg-[#EDE8F7] transition-colors"
+            >
+               Unlock this resume — ₦1,500
+            </button>
+            )}
 
           {/* Resume preview */}
           <div
