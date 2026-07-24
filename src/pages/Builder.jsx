@@ -331,56 +331,77 @@ export default function Builder() {
         `}>
 
           {/* Template switcher */}
-          <div className="flex gap-2 mb-4 bg-white border border-[#E4E2EE] rounded-lg p-1">
-            {['minimal', 'corporate', 'creative'].map(t => {
-              const isLocked = !hasAccess && t !== 'minimal'
-              return (
-                <button
-                  key={t}
-                  onClick={() => !isLocked && setTemplate(t)}
-                  title={isLocked ? 'Upgrade to Pro to unlock' : ''}
-                  className={`
-                    px-4 py-1.5 text-xs font-semibold rounded-md capitalize
-                    transition-all duration-150 flex items-center gap-1.5
-                    ${template === t
-                      ? 'bg-[#3D2B6B] text-white'
-                      : isLocked
-                        ? 'text-[#C4C4C4] cursor-not-allowed'
-                        : 'text-[#7A7893] hover:text-[#2C2C36] cursor-pointer'}
-                  `}
-                >
-                  {isLocked && <span className="text-[10px]">🔒</span>}
-                  {t}
-                </button>
-              )
-            })}
-          </div>
+<div className="flex gap-2 mb-4 bg-white border border-[#E4E2EE] rounded-lg p-1">
+  {['minimal', 'corporate', 'creative'].map(t => {
+    const isLocked = !hasAccess && t !== 'minimal'
+    return (
+      <button
+        key={t}
+        onClick={() => !isLocked && setTemplate(t)}
+        title={isLocked ? 'Locked — go Pro or unlock this resume' : ''}
+        className={`
+          px-4 py-1.5 text-xs font-semibold rounded-md capitalize
+          transition-all duration-150 flex items-center gap-1.5
+          ${template === t
+            ? 'bg-[#3D2B6B] text-white'
+            : isLocked
+              ? 'text-[#C4C4C4] cursor-not-allowed'
+              : 'text-[#7A7893] hover:text-[#2C2C36] cursor-pointer'}
+        `}
+      >
+        {isLocked && <span className="text-[10px]">🔒</span>}
+        {t}
+      </button>
+    )
+  })}
+</div>
 
-          {/* Upgrade nudge — free users only */}
-          {!isPro && (
-            <div className="w-full md:w-[595px] mb-4 bg-[#EDE8F7] border border-[#3D2B6B]/20 rounded-lg px-4 py-3 flex items-center justify-between gap-3">
-              <p className="text-xs text-[#3D2B6B] font-medium">
-                ✦ Unlock Corporate + Creative templates and all AI features
-              </p>
-              <UpgradeButton size="sm" />
-            </div>
-          )}
+{/* ── Access options — clearer messaging with TWO paths ── */}
+{!hasAccess && (
+  <div className="w-full md:w-[595px] mb-4 bg-[#EDE8F7] border border-[#3D2B6B]/20 rounded-xl p-4">
+    <p className="text-sm text-[#3D2B6B] font-semibold mb-1">
+      ✦ Unlock Corporate & Creative templates
+    </p>
+    <p className="text-xs text-[#7A7893] mb-3">
+      Choose what works best for you — pay once for just this resume, or go Pro for unlimited access.
+    </p>
 
-          {!hasAccess && resumeId && (
-          <button
-             onClick={async () => {
-                try {
-                  const url = await initializeSingleUnlock(resumeId)
-                  window.location.href = url
-                } catch (err) {
-                  alert('Could not start payment: ' + err.message)
-                }
-              }}
-              className="text-xs font-semibold text-[#3D2B6B] border border-[#3D2B6B] px-4 py-2 rounded-md hover:bg-[#EDE8F7] transition-colors"
-            >
-               Unlock this resume — ₦1,500
-            </button>
-            )}
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+      {/* Option 1: Single unlock */}
+      {resumeId && (
+        <button
+          onClick={async () => {
+            try {
+              const url = await initializeSingleUnlock(resumeId)
+              window.location.href = url
+            } catch (err) {
+              alert('Could not start payment: ' + err.message)
+            }
+          }}
+          className="bg-white border border-[#3D2B6B] text-[#3D2B6B] text-sm font-semibold py-2.5 rounded-lg hover:bg-[#3D2B6B] hover:text-white transition-colors"
+        >
+          Unlock this resume — ₦1,500
+          <span className="block text-[10px] font-normal opacity-80 mt-0.5">One-time · This resume only</span>
+        </button>
+      )}
+
+      {/* Option 2: Go Pro */}
+      <button
+        onClick={() => window.location.href = '/pricing'}
+        className="bg-[#3D2B6B] text-white text-sm font-semibold py-2.5 rounded-lg hover:bg-[#2e2053] transition-colors"
+      >
+        Go Pro — ₦5,000/mo
+        <span className="block text-[10px] font-normal opacity-80 mt-0.5">Unlimited resumes & AI</span>
+      </button>
+    </div>
+
+    {!resumeId && (
+      <p className="text-[11px] text-[#7A7893] mt-2">
+        💡 Save this resume first to unlock the single-resume option.
+      </p>
+    )}
+  </div>
+)}
 
           {/* Resume preview */}
           <div

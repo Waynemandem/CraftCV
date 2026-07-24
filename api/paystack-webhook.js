@@ -29,28 +29,48 @@ export default async function handler(req, res) {
       const { customer, amount, metadata } = event.data
 
       // ── Branch 1: Single Resume Unlock ──
-      if (metadata?.type === 'single_unlock' && metadata?.resumeId) {
-        console.log('Processing single unlock for resume:', metadata.resumeId)
 
-        if (amount >= 150000) {
-          const { error } = await supabase
-            .from('resumes')
-            .update({
-              is_unlocked: true,
-              unlocked_at: new Date().toISOString(),
-            })
-            .eq('id', metadata.resumeId)
+if (metadata?.type === 'single_unlock' && metadata?.resumeId) {
+  console.log('Processing single unlock for resume:', metadata.resumeId)
 
-          if (error) {
-            console.error('Failed to unlock resume:', error)
-            return res.status(500).json({ error: error.message })
-          }
+  if (amount >= 150000) {
+    const { data: resume, error: fetchError } = await supabase
+      .from('resumes')
+      .select('id, user_id')
+      .eq('id', metadata.resumeId)
+      .single()
 
-          console.log('✓ Resume unlocked:', metadata.resumeId)
-        } else {
-          console.log('Amount too low for single unlock:', amount)
-        }
-      }
+    if (fetchError || !resume) {
+      console.error('Resume not found for unlock:', metadata.resumeId)
+      return res.status(400).json({ error: 'Resume not found' })
+    }
+
+    if (metadata.userId && resume.user_id !== metadata.userId) {
+      console.error('Ownership mismatch — refusing to unlock', {
+        resumeOwner: resume.user_id,
+        paidBy: metadata.userId,
+      })
+      return res.status(403).json({ error: 'Ownership mismatch' })
+    }
+
+    const { error } = await supabase
+      .from('resumes')
+      .update({
+        is_unlocked: true,
+        unlocked_at: new Date().toISOString(),
+      })
+      .eq('id', metadata.resumeId)
+
+    if (error) {
+      console.error('Failed to unlock resume:', error)
+      return res.status(500).json({ error: error.message })
+    }
+
+    console.log('✓ Resume unlocked:', metadata.resumeId)
+  } else {
+    console.log('Amount too low for single unlock:', amount)
+  }
+}
 
       // ── Branch 2: Monthly Pro Subscription ──
       else if (amount >= 500000) {

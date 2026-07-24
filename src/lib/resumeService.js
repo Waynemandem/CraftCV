@@ -188,13 +188,16 @@ export const duplicateResume = async (id) => {
 
 
 export const initializeSingleUnlock = async (resumeId) => {
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Not authenticated')
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session) throw new Error('Not authenticated')
 
   const response = await fetch('/api/paystack-init-single', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: user.email, resumeId }),
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${session.access_token}`, 
+    },
+    body: JSON.stringify({ resumeId }), 
   })
 
   const data = await response.json()
