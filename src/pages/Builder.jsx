@@ -115,7 +115,13 @@ export default function Builder() {
     },
 
     onError: (err) => {
+       if (err.message?.includes('Premium template requires')) {
+      alert('This template requires Pro or a resume unlock. Upgrade to save with this template.')
+    } else if (err.message?.includes('Free plan is limited')) {
+      alert('You\'ve reached your free plan limit of 1 resume. Upgrade to Pro for unlimited resumes.')
+    } else {
       alert('Failed to save: ' + err.message)
+    }
     },
   })
 
