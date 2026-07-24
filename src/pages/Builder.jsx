@@ -363,7 +363,7 @@ export default function Builder() {
       ✦ Unlock Corporate & Creative templates
     </p>
     <p className="text-xs text-[#7A7893] mb-3">
-      Choose what works best for you — pay once for just this resume, or go Pro for unlimited access.
+      Pay once for just this resume or go Pro for unlimited access.
     </p>
 
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
