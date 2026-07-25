@@ -13,7 +13,7 @@ const PLANS = [
     ctaLink:  '/auth',
     highlight: false,
     features: [
-      '1 resume',
+      'Up to 3 resumes',
       'Minimal template only',
       'Basic PDF export',
       'No AI features',
@@ -217,7 +217,7 @@ export default function Pricing() {
 
           {/* Rows */}
           {[
-            { feature: 'Resumes',          vals: ['1', 'Unlimited', 'Unlimited'] },
+            { feature: 'Resumes',          vals: ['Up to 3 resumes', 'Unlimited', 'Unlimited'] },
             { feature: 'Templates',        vals: ['1', '3', '3'] },
             { feature: 'AI features',      vals: ['✕', '✓', '✓'] },
             { feature: 'PDF export',       vals: ['Watermarked', 'Clean', 'Clean'] },
