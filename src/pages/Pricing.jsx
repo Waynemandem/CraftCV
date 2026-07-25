@@ -29,7 +29,7 @@ const PLANS = [
   },
   {
     name:     'Pro',
-    price:    '₦8,900',
+    price:    '₦5,000',
     period:   'per month',
     desc:     'Everything you need to land your next role.',
     cta:      'Start Pro',
@@ -209,7 +209,7 @@ export default function Pricing() {
               <div key={p} className={`p-4 text-center ${i === 1 ? 'bg-[#3D2B6B]' : ''}`}>
                 <p className={`text-sm font-bold ${i === 1 ? 'text-white' : 'text-[#1A1A22]'}`}>{p}</p>
                 <p className={`text-xs mt-0.5 ${i === 1 ? 'text-[#C4B8E8]' : 'text-[#7A7893]'}`}>
-                  {['₦0', '₦8,900', '₦24,900'][i]}
+                  {['₦0', '₦5,000', '₦24,900'][i]}
                 </p>
               </div>
             ))}
