@@ -131,6 +131,7 @@ export default function PersonalForm() {
             placeholder=""
             value={personal.location || ''}
             onChange={handleChange}
+            name="location"
           />
         </div>
 
