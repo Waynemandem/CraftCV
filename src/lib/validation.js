@@ -31,7 +31,7 @@ export const ValidationRules = {
     error: 'Summary must be between 10 and 1000 characters'
   },
   
-  jobTitle: {
+  role: {
     min: 2,
     max: 100,
     regex: /^[a-zA-Z0-9\s\-()&\/,]+$/,
@@ -148,14 +148,23 @@ export const validateResumeContent = (content) => {
   // Experience
   if (content.experience && Array.isArray(content.experience)) {
     content.experience.forEach((exp, i) => {
-      if (!exp.jobTitle || exp.jobTitle.trim() === '') {
-        errors[`experience_${i}_jobTitle`] = 'Job title is required'
+      if (!exp.role || exp.role.trim() === '') {
+        errors[`experience_${i}_role`] = 'Job title is required'
+      } else {
+        const roleCheck = validateField('Role', exp.role, ValidationRules.role)
+        if (!roleCheck.valid) {
+          errors[`experience_${i}_role`] = roleCheck.error
+        }
       }
       if (!exp.company || exp.company.trim() === '') {
         errors[`experience_${i}_company`] = 'Company name is required'
       }
-      if (exp.description && exp.description.length > 2000) {
-        errors[`experience_${i}_desc`] = 'Description must not exceed 2000 characters'
+      if (Array.isArray(exp.bullets)) {
+        exp.bullets.forEach((bullet, bi) => {
+          if (bullet && bullet.length > 2000) {
+            errors[`experience_${i}_bullet_${bi}`] = 'Bullet must not exceed 2000 characters'
+          }
+        })
       }
     })
   }
@@ -165,6 +174,48 @@ export const validateResumeContent = (content) => {
     content.education.forEach((edu, i) => {
       if (!edu.school || edu.school.trim() === '') {
         errors[`education_${i}_school`] = 'School name is required'
+      }
+      if (edu.degree && edu.degree.length > 100) {
+        errors[`education_${i}_degree`] = 'Degree must not exceed 100 characters'
+      }
+      if (edu.field && edu.field.length > 100) {
+        errors[`education_${i}_field`] = 'Field of study must not exceed 100 characters'
+      }
+      if (edu.year && !/^\d{4}$/.test(edu.year.trim())) {
+        errors[`education_${i}_year`] = 'Graduation year must be a 4-digit year'
+      }
+    })
+  }
+
+  // Projects
+  if (content.projects && Array.isArray(content.projects)) {
+    content.projects.forEach((proj, i) => {
+      if (!proj.name || proj.name.trim() === '') {
+        errors[`project_${i}_name`] = 'Project name is required'
+      }
+      if (proj.desc && proj.desc.length > 2000) {
+        errors[`project_${i}_desc`] = 'Description must not exceed 2000 characters'
+      }
+      if (proj.stack && proj.stack.length > 200) {
+        errors[`project_${i}_stack`] = 'Tech stack must not exceed 200 characters'
+      }
+      if (proj.link && !ValidationRules.url.regex.test(proj.link.trim())) {
+        errors[`project_${i}_link`] = ValidationRules.url.error
+      }
+    })
+  }
+
+  // Certifications
+  if (content.certs && Array.isArray(content.certs)) {
+    content.certs.forEach((cert, i) => {
+      if (!cert.name || cert.name.trim() === '') {
+        errors[`cert_${i}_name`] = 'Certification name is required'
+      }
+      if (!cert.issuer || cert.issuer.trim() === '') {
+        errors[`cert_${i}_issuer`] = 'Issuing organisation is required'
+      }
+      if (cert.year && !/^\d{4}$/.test(cert.year.trim())) {
+        errors[`cert_${i}_year`] = 'Year must be a 4-digit year'
       }
     })
   }
@@ -219,9 +270,13 @@ export const sanitizeResumeContent = (content) => {
   if (sanitized.experience && Array.isArray(sanitized.experience)) {
     sanitized.experience = sanitized.experience.map(exp => ({
       ...exp,
-      jobTitle: sanitizeHTML(exp.jobTitle),
+      role: sanitizeHTML(exp.role),
       company: sanitizeHTML(exp.company),
-      description: sanitizeHTML(exp.description),
+      from: sanitizeHTML(exp.from),
+      to: sanitizeHTML(exp.to),
+      bullets: Array.isArray(exp.bullets)
+        ? exp.bullets.map(bullet => sanitizeHTML(bullet))
+        : exp.bullets,
     }))
   }
   
@@ -229,8 +284,9 @@ export const sanitizeResumeContent = (content) => {
     sanitized.education = sanitized.education.map(edu => ({
       ...edu,
       school: sanitizeHTML(edu.school),
+      degree: sanitizeHTML(edu.degree),
       field: sanitizeHTML(edu.field),
-      description: sanitizeHTML(edu.description),
+      year: sanitizeHTML(edu.year),
     }))
   }
   
@@ -241,8 +297,9 @@ export const sanitizeResumeContent = (content) => {
   if (sanitized.projects && Array.isArray(sanitized.projects)) {
     sanitized.projects = sanitized.projects.map(proj => ({
       ...proj,
-      title: sanitizeHTML(proj.title),
-      description: sanitizeHTML(proj.description),
+      name: sanitizeHTML(proj.name),
+      desc: sanitizeHTML(proj.desc),
+      stack: sanitizeHTML(proj.stack),
       link: sanitizeHTML(proj.link),
     }))
   }
@@ -250,8 +307,9 @@ export const sanitizeResumeContent = (content) => {
   if (sanitized.certs && Array.isArray(sanitized.certs)) {
     sanitized.certs = sanitized.certs.map(cert => ({
       ...cert,
-      certification: sanitizeHTML(cert.certification),
+      name: sanitizeHTML(cert.name),
       issuer: sanitizeHTML(cert.issuer),
+      year: sanitizeHTML(cert.year),
     }))
   }
   
