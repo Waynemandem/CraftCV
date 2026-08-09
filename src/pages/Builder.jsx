@@ -1,5 +1,6 @@
 // src/pages/Builder.jsx
-import { useState, useRef, useEffect }            from 'react'
+
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { Link, useSearchParams }                  from 'react-router-dom'
 import { useReactToPrint }                        from 'react-to-print'
 import { useMutation, useQuery, useQueryClient }  from '@tanstack/react-query'
@@ -30,6 +31,10 @@ export default function Builder() {
   // ── Save state
   const [resumeId, setResumeId] = useState(null)
   const [saveName, setSaveName] = useState('My Resume')
+  const [pendingPrint, setPendingPrint] = useState(false)
+  const [isPreparingPdf, setIsPreparingPdf] = useState(false)
+  const [pdfError, setPdfError] = useState('')
+  const previousShowPreviewRef = useRef(false)
 
   const TOTAL = 7
 
@@ -79,11 +84,120 @@ export default function Builder() {
     }
   }, [personal.name])
 
+
+
+  const printRef = useRef(null)
+
+  const waitForPrintablePreview = useCallback((element, timeout = 2500) => {
+    return new Promise((resolve, reject) => {
+      if (!element) {
+        reject(new Error('Resume preview not found'))
+        return
+      }
+
+      let frame1 = null
+      let frame2 = null
+      let timeoutId = null
+      let observer = null
+
+      const cleanup = () => {
+        if (frame1) cancelAnimationFrame(frame1)
+        if (frame2) cancelAnimationFrame(frame2)
+        if (timeoutId) clearTimeout(timeoutId)
+        if (observer) observer.disconnect()
+      }
+
+      const isReady = () => {
+        if (!element.isConnected) return false
+        const rect = element.getBoundingClientRect()
+        return rect.width > 0 && rect.height > 0
+      }
+
+      const check = () => {
+        if (isReady()) {
+          cleanup()
+          resolve()
+        }
+      }
+
+      timeoutId = window.setTimeout(() => {
+        cleanup()
+        reject(new Error('Resume preview did not render in time'))
+      }, timeout)
+
+      frame1 = requestAnimationFrame(() => {
+        frame2 = requestAnimationFrame(check)
+      })
+
+      if ('ResizeObserver' in window) {
+        observer = new ResizeObserver(check)
+        observer.observe(element)
+      }
+
+      check()
+    })
+  }, [])
+
   // ── Print / PDF
-  const printRef    = useRef(null)
   const handlePrint = useReactToPrint({
     contentRef:    printRef,
     documentTitle: `${personal.name || 'Resume'} — OrbitCV`,
+
+
+
+
+    onBeforePrint: async () => {
+      await waitForPrintablePreview(printRef.current)
+
+      if (document.fonts?.ready) {
+        await document.fonts.ready
+      }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    },
+    onAfterPrint: () => {
+      setPendingPrint(false)
+      setIsPreparingPdf(false)
+
+      if (!previousShowPreviewRef.current) {
+        setShowPreview(false)
+      }
+    },
+
+
+
+
+
+
+
+
+
+    onPrintError: () => {
+      setPendingPrint(false)
+      setIsPreparingPdf(false)
+      setPdfError('Something went wrong generating your PDF, please try again')
+    },
     pageStyle: `
       @page { size: A4; margin: 0; }
       @media print {
@@ -92,15 +206,300 @@ export default function Builder() {
     `,
   })
 
+
+
+
+
   // ── Mobile-safe download handler ──
   // Forces preview to render before print fires, so mobile browsers
   // don't try to print a hidden/zero-height element (causes blank PDF)
   const handleDownloadClick = () => {
-    setShowPreview(true)
-    setTimeout(() => {
-      handlePrint()
-    }, 150)
+    setPdfError('')
+    previousShowPreviewRef.current = showPreview
+    setIsPreparingPdf(true)
+    setPendingPrint(true)
+
+    if (!showPreview) {
+      setShowPreview(true)
+    }
+
+
+
+
   }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  useEffect(() => {
+    if (!pendingPrint || !showPreview) return
+
+    let cancelled = false
+
+    ;(async () => {
+      try {
+        await waitForPrintablePreview(printRef.current)
+        if (cancelled) return
+
+        await handlePrint?.()
+          } catch (err) {
+
+        if (cancelled) return
+        setPendingPrint(false)
+        setIsPreparingPdf(false)
+        setPdfError('Something went wrong generating your PDF, please try again')
+          }
+
+
+
+
+
+
+
+
+
+
+
+
+
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [pendingPrint, showPreview, handlePrint, waitForPrintablePreview])
 
   // ── Save mutation via TanStack Query ──
   const saveMutation = useMutation({
@@ -171,7 +570,14 @@ export default function Builder() {
 
         <div className="hidden md:block">
           <StepIndicator current={step} />
-        </div>
+          </div>
+
+
+
+
+
+
+
 
         <div className="flex items-center gap-2">
 
@@ -194,28 +600,59 @@ export default function Builder() {
                 ? 'bg-green-50 border-green-300 text-green-600'
                 : 'border-[#E4E2EE] text-[#2C2C36] hover:border-[#3D2B6B] hover:text-[#3D2B6B]'}
             `}
-          >
+      >
+
+
+
+
+
+
             {saveLabel()}
           </button>
 
           {/* Download PDF — desktop only — now uses handleDownloadClick */}
           <button
             onClick={handleDownloadClick}
-            className="hidden md:block text-sm font-semibold text-white bg-[#3D2B6B] px-4 py-2 rounded-md hover:bg-[#2e2053] transition-colors"
+            disabled={isPreparingPdf}
+            className="hidden md:block text-sm font-semibold text-white bg-[#3D2B6B] px-4 py-2 rounded-md hover:bg-[#2e2053] transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            Download PDF
-          </button>
+            {isPreparingPdf ? 'Preparing PDF...' : 'Download PDF'}
+      </button>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
           {/* Hamburger — mobile only */}
           <div className="relative md:hidden">
-            <button
+      <button
+
+
               onClick={() => setMenuOpen(o => !o)}
               className="w-9 h-9 flex flex-col items-center justify-center gap-1.5 border border-[#E4E2EE] rounded-md"
-            >
+      >
+
+
               <span className={`block w-4 h-px bg-[#2C2C36] transition-all duration-200 ${menuOpen ? 'rotate-45 translate-y-1.5' : ''}`} />
               <span className={`block w-4 h-px bg-[#2C2C36] transition-all duration-200 ${menuOpen ? 'opacity-0' : ''}`} />
               <span className={`block w-4 h-px bg-[#2C2C36] transition-all duration-200 ${menuOpen ? '-rotate-45 -translate-y-1.5' : ''}`} />
-            </button>
+      </button>
 
             {menuOpen && (
               <div className="absolute right-0 top-11 w-56 bg-white border border-[#E4E2EE] rounded-lg shadow-lg z-50 overflow-hidden">
@@ -230,7 +667,7 @@ export default function Builder() {
                     <span className="font-medium text-[#2C2C36]">
                       {showPreview ? 'Hide Preview' : 'Show Preview'}
                     </span>
-                  </div>
+    </div>
                   <div className={`w-8 h-4 rounded-full relative transition-colors duration-200 ${showPreview ? 'bg-[#3D2B6B]' : 'bg-[#E4E2EE]'}`}>
                     <span className={`absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-all duration-200 ${showPreview ? 'left-4' : 'left-0.5'}`} />
                   </div>
@@ -274,9 +711,10 @@ export default function Builder() {
                 {/* Download in menu — now uses handleDownloadClick */}
                 <button
                   onClick={() => { handleDownloadClick(); setMenuOpen(false) }}
-                  className="w-full flex items-center gap-2 px-4 py-3 text-sm font-medium text-[#3D2B6B] hover:bg-[#F8F7FC] transition-colors"
+                  disabled={isPreparingPdf}
+                  className="w-full flex items-center gap-2 px-4 py-3 text-sm font-medium text-[#3D2B6B] hover:bg-[#F8F7FC] transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
                 >
-                  ↓ Download PDF
+                  {isPreparingPdf ? 'Preparing PDF...' : '↓ Download PDF'}
                 </button>
 
               </div>
@@ -301,6 +739,12 @@ export default function Builder() {
           />
         </div>
       </div>
+
+      {pdfError && (
+        <div className="px-4 md:px-6 py-3 bg-red-50 border-b border-red-200 text-sm text-red-700">
+          {pdfError}
+        </div>
+      )}
 
       {/* ── Two-panel layout ── */}
       <div className="flex flex-1 overflow-hidden">
@@ -352,7 +796,7 @@ export default function Builder() {
         {isLocked && <span className="text-[10px]">🔒</span>}
         {t}
       </button>
-    )
+  )
   })}
 </div>
 
@@ -373,7 +817,7 @@ export default function Builder() {
             window.location.href = url
           } catch (err) {
             alert('Could not start payment: ' + err.message)
-          }
+}
         }}
         disabled={!resumeId}
         className={`
@@ -434,3 +878,4 @@ export default function Builder() {
     </div>
   )
 }
+
