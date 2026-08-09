@@ -9,6 +9,7 @@ import Card                                           from '../components/ui/Car
 import Button                                         from '../components/ui/Button'
 import UpgradeButton                                  from '../components/ui/UpgradeButton'
 import { useState }                                   from 'react'
+import { cancelSubscription }                         from '../lib/profileService'
 
 export default function Dashboard() {
   const { user, signOut }       = useAuthStore()
@@ -40,6 +41,17 @@ export default function Dashboard() {
     },
   })
 
+  const cancelMutation = useMutation({
+    mutationFn: cancelSubscription,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['profile'] })
+      alert('Subscription cancelled. You will keep Pro access until the current period ends.')
+    },
+    onError: (err) => {
+      alert('Failed to cancel subscription: ' + err.message)
+    },
+  })
+
   const handleNewResume = () => {
     resetResume()
     navigate('/builder')
@@ -52,6 +64,16 @@ export default function Dashboard() {
 
   const handleEdit = (resume) => {
     navigate(`/builder?id=${resume.id}`)
+  }
+
+  const handleCancelSubscription = () => {
+    const message = profile?.plan_expires
+      ? `Cancel monthly renewal? You will keep Pro access until ${new Date(profile.plan_expires).toLocaleDateString()}.`
+      : 'Cancel monthly renewal?'
+
+    if (!window.confirm(message)) return
+
+    cancelMutation.mutate()
   }
 
   const firstName = user?.user_metadata?.full_name?.split(' ')[0]
@@ -178,6 +200,31 @@ export default function Dashboard() {
             </div>
             <UpgradeButton size="md" />
           </div>
+        )}
+
+        {isPro && profile?.plan_expires && (
+          <Card className="mb-8">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div>
+                <p className="text-sm font-semibold text-[#1A1A22]">Subscription</p>
+                <p className="text-sm text-[#7A7893] mt-1">
+                  {profile.cancelled_at
+                    ? `Cancellation scheduled. Pro access ends on ${new Date(profile.plan_expires).toLocaleDateString()}.`
+                    : `Monthly Pro renews on ${new Date(profile.plan_expires).toLocaleDateString()}.`}
+                </p>
+              </div>
+              {!profile.cancelled_at && (
+                <Button
+                  variant="danger"
+                  size="sm"
+                  onClick={handleCancelSubscription}
+                  disabled={cancelMutation.isPending}
+                >
+                  {cancelMutation.isPending ? 'Cancelling...' : 'Cancel subscription'}
+                </Button>
+              )}
+            </div>
+          </Card>
         )}
 
         {/* Section header */}

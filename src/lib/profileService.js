@@ -31,3 +31,21 @@ export const initializePayment = async (email) => {
 
   return data.url  // Paystack checkout URL
 }
+
+export const cancelSubscription = async () => {
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session) throw new Error('Not authenticated')
+
+  const response = await fetch('/api/cancel-subscription', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${session.access_token}`,
+    },
+  })
+
+  const data = await response.json()
+  if (!response.ok) throw new Error(data.error || 'Cancellation failed')
+
+  return data
+}
