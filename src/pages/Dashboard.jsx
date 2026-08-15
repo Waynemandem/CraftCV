@@ -57,10 +57,12 @@ export default function Dashboard() {
     navigate('/builder')
   }
 
-  const handleSignOut = async () => {
+    const handleSignOut = async () => {
     await signOut()
+    queryClient.clear()
     navigate('/')
   }
+
 
   const handleEdit = (resume) => {
     navigate(`/builder?id=${resume.id}`)

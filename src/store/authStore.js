@@ -4,20 +4,33 @@
 import { create } from 'zustand'
 import { supabase } from '../lib/supabase'
 
+let authSubscription = null
+
 const useAuthStore = create((set) => ({
+
   user:    null,
   loading: true,
 
-  // Call once on app mount to restore session
+    // Call once on app mount to restore session
   init: async () => {
+    authSubscription?.unsubscribe()
+
     const { data: { session } } = await supabase.auth.getSession()
     set({ user: session?.user ?? null, loading: false })
 
     // Listen for auth state changes (login, logout, token refresh)
-    supabase.auth.onAuthStateChange((_event, session) => {
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
       set({ user: session?.user ?? null, loading: false })
     })
+
+    authSubscription = data.subscription
+
+    return () => {
+      authSubscription?.unsubscribe()
+      authSubscription = null
+    }
   },
+
 
   // Email + password sign up
   signUp: async (email, password, name) => {

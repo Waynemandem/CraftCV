@@ -21,8 +21,18 @@ import Support from './pages/Support'
 export default function App() {
   const init = useAuthStore(s => s.init)
 
-  // Restore  session on app load
-  useEffect(() => { init() }, [])
+  // Restore session on app load and clean up auth listener on unmount
+  useEffect(() => {
+    let cleanup
+
+    init().then(result => {
+      cleanup = result
+    })
+
+    return () => {
+      cleanup?.()
+    }
+  }, [init])
 
   return (
     <Routes>

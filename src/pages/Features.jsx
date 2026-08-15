@@ -203,7 +203,8 @@ export default function Features() {
               </div>
               <div className="p-4 text-center bg-[#3D2B6B] border-l border-[#3D2B6B]">
                 <p className="text-sm font-bold text-white">Pro ✦</p>
-                <p className="text-xs text-[#C4B8E8] mt-0.5">₦8,900/mo</p>
+                                <p className="text-xs text-[#C4B8E8] mt-0.5">₦5,000/mo</p>
+
               </div>
             </div>
 

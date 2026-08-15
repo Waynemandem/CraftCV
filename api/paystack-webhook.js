@@ -2,6 +2,12 @@
 import crypto from 'crypto'
 import { createClient } from '@supabase/supabase-js'
 
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+}
+
 const supabase = createClient(
   process.env.VITE_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -9,21 +15,40 @@ const supabase = createClient(
 
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000
 
+async function readRawBody(req) {
+  const chunks = []
+
+  for await (const chunk of req) {
+    chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk)
+  }
+
+  return Buffer.concat(chunks)
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
+  const rawBody = await readRawBody(req)
+
   const hash = crypto
     .createHmac('sha512', process.env.PAYSTACK_SECRET_KEY)
-    .update(JSON.stringify(req.body))
+    .update(rawBody)
     .digest('hex')
 
   if (hash !== req.headers['x-paystack-signature']) {
     return res.status(401).json({ error: 'Invalid signature' })
   }
 
-  const event = req.body
+  let event
+
+  try {
+    event = JSON.parse(rawBody.toString('utf8'))
+  } catch {
+    return res.status(400).json({ error: 'Invalid JSON body' })
+  }
+
   console.log('Webhook event:', event.event)
 
   try {
