@@ -38,22 +38,22 @@ export default function EducationForm() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
-              label="School / University" placeholder="University of Lagos"
+              label="School / University" 
               value={edu.school}
               onChange={(e) => updateEducation(edu.id, { school: e.target.value })}
             />
             <Input
-              label="Degree" placeholder="B.Sc Computer Science"
+              label="Degree" 
               value={edu.degree}
               onChange={(e) => updateEducation(edu.id, { degree: e.target.value })}
             />
             <Input
-              label="Field of Study" placeholder="Computer Science"
+              label="Field of Study" 
               value={edu.field}
               onChange={(e) => updateEducation(edu.id, { field: e.target.value })}
             />
             <Input
-              label="Graduation Year" placeholder="2022"
+              label="Graduation Year" 
               value={edu.year}
               onChange={(e) => updateEducation(edu.id, { year: e.target.value })}
             />

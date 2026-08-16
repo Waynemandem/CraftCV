@@ -181,8 +181,8 @@ export const validateResumeContent = (content) => {
       if (edu.field && edu.field.length > 100) {
         errors[`education_${i}_field`] = 'Field of study must not exceed 100 characters'
       }
-      if (edu.year && !/^\d{4}$/.test(edu.year.trim())) {
-        errors[`education_${i}_year`] = 'Graduation year must be a 4-digit year'
+      if (edu.year && !/^(\d{4}|Present)$/i.test(edu.year.trim())) {
+        errors[`education_${i}_year`] = 'Enter a 4-digit year or "Present" if currently studying'
       }
     })
   }

@@ -7,7 +7,7 @@ import { CalendarArrowUp } from 'lucide-react'
 
 let authSubscription = null
 
-const useAuthStore = create((set,get) => ({
+const useAuthStore = create((set) => ({
 
   user:    null,
   loading: true,
