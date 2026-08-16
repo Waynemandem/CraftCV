@@ -7,7 +7,7 @@ const FEATURES = [
     icon: '✦',
     category: 'AI POWERED',
     title: 'AI Resume Writing',
-    desc: 'Stuck on what to write? Claude AI generates professional bullet points, summaries, and skill suggestions tailored to your job title. No more staring at a blank page.',
+    desc: 'Stuck on what to write? Codex generates professional bullet points, summaries, and skill suggestions tailored to your job title. No more staring at a blank page.',
     points: [
       'Generate your professional summary in one click',
       'Rewrite weak bullet points with strong action verbs',

@@ -6,10 +6,11 @@ import { supabase } from '../lib/supabase'
 
 let authSubscription = null
 
-const useAuthStore = create((set) => ({
+const useAuthStore = create((set,get) => ({
 
   user:    null,
   loading: true,
+  _authSubscription: null,
 
     // Call once on app mount to restore session
   init: async () => {
@@ -19,7 +20,7 @@ const useAuthStore = create((set) => ({
     set({ user: session?.user ?? null, loading: false })
 
     // Listen for auth state changes (login, logout, token refresh)
-    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data:  } = supabase.auth.onAuthStateChange((_event, session) => {
       set({ user: session?.user ?? null, loading: false })
     })
 

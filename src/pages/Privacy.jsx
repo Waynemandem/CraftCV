@@ -58,7 +58,7 @@ export default function Privacy() {
               <li><strong>Supabase</strong> — authentication and database storage</li>
               <li><strong>Vercel</strong> — application hosting</li>
               <li><strong>Paystack</strong> — payment processing</li>
-              <li><strong>Anthropic (Claude AI)</strong> — AI content generation</li>
+              <li><strong>ChatGPT (Codex)</strong> — AI content generation</li>
             </ul>
             <p className="mt-3">
               Each of these providers has their own privacy policy governing how they handle data.

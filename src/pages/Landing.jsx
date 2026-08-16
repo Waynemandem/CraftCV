@@ -211,7 +211,7 @@ export default function Landing() {
           {/* Left — copy */}
           <div>
             <div className="inline-flex items-center gap-2 bg-[#EDE8F7] text-[#3D2B6B] text-xs font-semibold px-3 py-1.5 rounded-md mb-6">
-              ✦ Powered by Claude AI
+              ✦ Powered by Codex
             </div>
             <h1 className="text-4xl md:text-5xl font-bold text-[#1A1A22] leading-tight tracking-tight mb-5">
               Build resumes that<br />
