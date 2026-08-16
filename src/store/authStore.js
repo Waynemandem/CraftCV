@@ -3,6 +3,7 @@
 
 import { create } from 'zustand'
 import { supabase } from '../lib/supabase'
+import { CalendarArrowUp } from 'lucide-react'
 
 let authSubscription = null
 
@@ -10,7 +11,6 @@ const useAuthStore = create((set,get) => ({
 
   user:    null,
   loading: true,
-  _authSubscription: null,
 
     // Call once on app mount to restore session
   init: async () => {
@@ -20,16 +20,16 @@ const useAuthStore = create((set,get) => ({
     set({ user: session?.user ?? null, loading: false })
 
     // Listen for auth state changes (login, logout, token refresh)
-    const { data:  } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
       set({ user: session?.user ?? null, loading: false })
     })
 
     authSubscription = data.subscription
-
-    return () => {
+    },
+    
+     cleanup: () => {
       authSubscription?.unsubscribe()
       authSubscription = null
-    }
   },
 
 

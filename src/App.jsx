@@ -23,16 +23,10 @@ export default function App() {
 
   // Restore session on app load and clean up auth listener on unmount
   useEffect(() => {
-    let cleanup
-
-    init().then(result => {
-      cleanup = result
-    })
-
-    return () => {
-      cleanup?.()
-    }
-  }, [init])
+    init()
+    return () => 
+      useAuthStore.getState().cleanup()
+  }, [])
 
   return (
     <Routes>
