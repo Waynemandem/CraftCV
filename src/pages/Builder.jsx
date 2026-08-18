@@ -1,16 +1,13 @@
 // src/pages/Builder.jsx
-
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useEffect }                    from 'react'
 import { Link, useSearchParams }                  from 'react-router-dom'
-import { useReactToPrint }                        from 'react-to-print'
 import { useMutation, useQuery, useQueryClient }  from '@tanstack/react-query'
-import { createResume, updateResume, initializeSingleUnlock }    from '../lib/resumeService'
-import { fetchResumeById }                        from '../lib/resumeService'
+import { PDFDownloadLink }                        from '@react-pdf/renderer'
+import { createResume, updateResume, initializeSingleUnlock, fetchResumeById } from '../lib/resumeService'
 import useResumeStore                             from '../store/resumeStore'
 import { useProfile }                             from '../hooks/useProfile'
 import StepIndicator                              from '../components/ui/StepIndicator'
 import Button                                     from '../components/ui/Button'
-import UpgradeButton                              from '../components/ui/UpgradeButton'
 import PersonalForm                               from '../components/forms/PersonalForm'
 import SummaryForm                                from '../components/forms/SummaryForm'
 import ExperienceForm                             from '../components/forms/ExperienceForm'
@@ -21,10 +18,7 @@ import CertsForm                                  from '../components/forms/Cert
 import MinimalTemplate                            from '../components/resume/MinimalTemplate'
 import CorporateTemplate                          from '../components/resume/CorporateTemplate'
 import CreativeTemplate                           from '../components/resume/CreativeTemplate'
-import { PDFDownloadLink } from '@react-pdf/renderer'
-import MinimalPDF from '../components/resume/pdf/MinimalPDF'
-
-
+import MinimalPDF                                 from '../components/resume/pdf/MinimalPDF'
 
 export default function Builder() {
   // ── UI state
@@ -35,10 +29,6 @@ export default function Builder() {
   // ── Save state
   const [resumeId, setResumeId] = useState(null)
   const [saveName, setSaveName] = useState('My Resume')
-  const [pendingPrint, setPendingPrint] = useState(false)
-  const [isPreparingPdf, setIsPreparingPdf] = useState(false)
-  const [pdfError, setPdfError] = useState('')
-  const previousShowPreviewRef = useRef(false)
 
   const TOTAL = 7
 
@@ -66,11 +56,9 @@ export default function Builder() {
     enabled:  !!editId,
     staleTime: Infinity,
   })
-  
-  
+
   const isResumeUnlocked = existingResume?.is_unlocked || false
   const hasAccess = isPro || isResumeUnlocked
-
 
   // Load existing resume into store when data arrives
   useEffect(() => {
@@ -88,423 +76,6 @@ export default function Builder() {
     }
   }, [personal.name])
 
-
-
-  const printRef = useRef(null)
-
-  const waitForPrintablePreview = useCallback((element, timeout = 2500) => {
-    return new Promise((resolve, reject) => {
-      if (!element) {
-        reject(new Error('Resume preview not found'))
-        return
-      }
-
-      let frame1 = null
-      let frame2 = null
-      let timeoutId = null
-      let observer = null
-
-      const cleanup = () => {
-        if (frame1) cancelAnimationFrame(frame1)
-        if (frame2) cancelAnimationFrame(frame2)
-        if (timeoutId) clearTimeout(timeoutId)
-        if (observer) observer.disconnect()
-      }
-
-      const isReady = () => {
-        if (!element.isConnected) return false
-        const rect = element.getBoundingClientRect()
-        return rect.width > 0 && rect.height > 0
-      }
-
-      const check = () => {
-        if (isReady()) {
-          cleanup()
-          resolve()
-        }
-      }
-
-      timeoutId = window.setTimeout(() => {
-        cleanup()
-        reject(new Error('Resume preview did not render in time'))
-      }, timeout)
-
-      frame1 = requestAnimationFrame(() => {
-        frame2 = requestAnimationFrame(check)
-      })
-
-      if ('ResizeObserver' in window) {
-        observer = new ResizeObserver(check)
-        observer.observe(element)
-      }
-
-      check()
-    })
-  }, [])
-
-  // ── Print / PDF
-  const handlePrint = useReactToPrint({
-    contentRef:    printRef,
-    documentTitle: `${personal.name || 'Resume'} — OrbitCV`,
-
-
-
-
-    onBeforePrint: async () => {
-      await waitForPrintablePreview(printRef.current)
-
-      if (document.fonts?.ready) {
-        await document.fonts.ready
-      }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    },
-    onAfterPrint: () => {
-      setPendingPrint(false)
-      setIsPreparingPdf(false)
-
-      if (!previousShowPreviewRef.current) {
-        setShowPreview(false)
-      }
-    },
-
-
-
-
-
-
-
-
-
-    onPrintError: () => {
-      setPendingPrint(false)
-      setIsPreparingPdf(false)
-      setPdfError('Something went wrong generating your PDF, please try again')
-    },
-    pageStyle: `
-      @page { size: A4; margin: 0; }
-      @media print {
-        body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      }
-    `,
-  })
-
-
-
-
-
-  // ── Mobile-safe download handler ──
-  // Forces preview to render before print fires, so mobile browsers
-  // don't try to print a hidden/zero-height element (causes blank PDF)
-  const handleDownloadClick = () => {
-    setPdfError('')
-    previousShowPreviewRef.current = showPreview
-    setIsPreparingPdf(true)
-    setPendingPrint(true)
-
-    if (!showPreview) {
-      setShowPreview(true)
-    }
-
-
-
-
-  }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  useEffect(() => {
-    if (!pendingPrint || !showPreview) return
-
-    let cancelled = false
-
-    ;(async () => {
-      try {
-        await waitForPrintablePreview(printRef.current)
-        if (cancelled) return
-
-        await handlePrint?.()
-          } catch (err) {
-
-        if (cancelled) return
-        setPendingPrint(false)
-        setIsPreparingPdf(false)
-        setPdfError('Something went wrong generating your PDF, please try again')
-          }
-
-
-
-
-
-
-
-
-
-
-
-
-
-    })()
-
-    return () => {
-      cancelled = true
-    }
-  }, [pendingPrint, showPreview, handlePrint, waitForPrintablePreview])
-
   // ── Save mutation via TanStack Query ──
   const saveMutation = useMutation({
     mutationFn: ({ isNew, data }) =>
@@ -518,13 +89,13 @@ export default function Builder() {
     },
 
     onError: (err) => {
-       if (err.message?.includes('Premium template requires')) {
-      alert('This template requires Pro or a resume unlock. Upgrade to save with this template.')
-    } else if (err.message?.includes('Free plan is limited')) {
-      alert('You\'ve reached your free plan limit of 1 resume. Upgrade to Pro for unlimited resumes.')
-    } else {
-      alert('Failed to save: ' + err.message)
-    }
+      if (err.message?.includes('Premium template requires')) {
+        alert('This template requires Pro or a resume unlock. Upgrade to save with this template.')
+      } else if (err.message?.includes('Free plan is limited')) {
+        alert('You\'ve reached your free plan limit. Upgrade to Pro for unlimited resumes.')
+      } else {
+        alert('Failed to save: ' + err.message)
+      }
     },
   })
 
@@ -562,6 +133,20 @@ export default function Builder() {
     return 'Save'
   }
 
+  // ── Shared PDF document — used by both desktop and mobile download buttons
+  const pdfDocument = (
+    <MinimalPDF
+      personal={personal}
+      summary={summary}
+      experience={experience}
+      education={education}
+      skills={skills}
+      projects={projects}
+      certs={certs}
+    />
+  )
+  const pdfFileName = `${personal.name || 'Resume'} - OrbitCV.pdf`
+
   return (
     <div className="min-h-screen bg-[#F8F7FC] flex flex-col">
 
@@ -574,14 +159,7 @@ export default function Builder() {
 
         <div className="hidden md:block">
           <StepIndicator current={step} />
-          </div>
-
-
-
-
-
-
-
+        </div>
 
         <div className="flex items-center gap-2">
 
@@ -604,75 +182,36 @@ export default function Builder() {
                 ? 'bg-green-50 border-green-300 text-green-600'
                 : 'border-[#E4E2EE] text-[#2C2C36] hover:border-[#3D2B6B] hover:text-[#3D2B6B]'}
             `}
-      >
-
-
-
-
-
-
+          >
             {saveLabel()}
           </button>
 
-       {/* Download PDF — desktop only — now uses react-pdf, works reliably on mobile too */}
-<PDFDownloadLink
-  document={
-    <MinimalPDF
-      personal={personal}
-      summary={summary}
-      experience={experience}
-      education={education}
-      skills={skills}
-      projects={projects}
-      certs={certs}
-    />
-  }
-  fileName={`${personal.name || 'Resume'} - OrbitCV.pdf`}
-  className="hidden md:block"
->
-  {({ loading }) => (
-    <button
-      disabled={loading}
-      className="text-sm font-semibold text-white bg-[#3D2B6B] px-4 py-2 rounded-md hover:bg-[#2e2053] transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
-    >
-      {loading ? 'Preparing PDF...' : 'Download PDF'}
-    </button>
-  )}
-</PDFDownloadLink>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+          {/* Download PDF — desktop only — react-pdf, works reliably on mobile too */}
+          <PDFDownloadLink
+            document={pdfDocument}
+            fileName={pdfFileName}
+            className="hidden md:block"
+          >
+            {({ loading }) => (
+              <button
+                disabled={loading}
+                className="text-sm font-semibold text-white bg-[#3D2B6B] px-4 py-2 rounded-md hover:bg-[#2e2053] transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+              >
+                {loading ? 'Preparing PDF...' : 'Download PDF'}
+              </button>
+            )}
+          </PDFDownloadLink>
 
           {/* Hamburger — mobile only */}
           <div className="relative md:hidden">
-      <button
-
-
+            <button
               onClick={() => setMenuOpen(o => !o)}
               className="w-9 h-9 flex flex-col items-center justify-center gap-1.5 border border-[#E4E2EE] rounded-md"
-      >
-
-
+            >
               <span className={`block w-4 h-px bg-[#2C2C36] transition-all duration-200 ${menuOpen ? 'rotate-45 translate-y-1.5' : ''}`} />
               <span className={`block w-4 h-px bg-[#2C2C36] transition-all duration-200 ${menuOpen ? 'opacity-0' : ''}`} />
               <span className={`block w-4 h-px bg-[#2C2C36] transition-all duration-200 ${menuOpen ? '-rotate-45 -translate-y-1.5' : ''}`} />
-      </button>
+            </button>
 
             {menuOpen && (
               <div className="absolute right-0 top-11 w-56 bg-white border border-[#E4E2EE] rounded-lg shadow-lg z-50 overflow-hidden">
@@ -687,7 +226,7 @@ export default function Builder() {
                     <span className="font-medium text-[#2C2C36]">
                       {showPreview ? 'Hide Preview' : 'Show Preview'}
                     </span>
-    </div>
+                  </div>
                   <div className={`w-8 h-4 rounded-full relative transition-colors duration-200 ${showPreview ? 'bg-[#3D2B6B]' : 'bg-[#E4E2EE]'}`}>
                     <span className={`absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-all duration-200 ${showPreview ? 'left-4' : 'left-0.5'}`} />
                   </div>
@@ -728,32 +267,22 @@ export default function Builder() {
                   </button>
                 </div>
 
-                {/* Download in menu — now uses handleDownloadClick */}
-              <PDFDownloadLink
-  document={
-    <MinimalPDF
-      personal={personal}
-      summary={summary}
-      experience={experience}
-      education={education}
-      skills={skills}
-      projects={projects}
-      certs={certs}
-    />
-  }
-  fileName={`${personal.name || 'Resume'} - OrbitCV.pdf`}
-  className="w-full"
->
-  {({ loading }) => (
-    <button
-      onClick={() => !loading && setMenuOpen(false)}
-      disabled={loading}
-      className="w-full flex items-center gap-2 px-4 py-3 text-sm font-medium text-[#3D2B6B] hover:bg-[#F8F7FC] transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
-    >
-      {loading ? 'Preparing PDF...' : '↓ Download PDF'}
-    </button>
-  )}
-</PDFDownloadLink>
+                {/* Download in menu — react-pdf */}
+                <PDFDownloadLink
+                  document={pdfDocument}
+                  fileName={pdfFileName}
+                  className="w-full block"
+                >
+                  {({ loading }) => (
+                    <button
+                      onClick={() => !loading && setMenuOpen(false)}
+                      disabled={loading}
+                      className="w-full flex items-center gap-2 px-4 py-3 text-sm font-medium text-[#3D2B6B] hover:bg-[#F8F7FC] transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+                    >
+                      {loading ? 'Preparing PDF...' : '↓ Download PDF'}
+                    </button>
+                  )}
+                </PDFDownloadLink>
 
               </div>
             )}
@@ -777,12 +306,6 @@ export default function Builder() {
           />
         </div>
       </div>
-
-      {pdfError && (
-        <div className="px-4 md:px-6 py-3 bg-red-50 border-b border-red-200 text-sm text-red-700">
-          {pdfError}
-        </div>
-      )}
 
       {/* ── Two-panel layout ── */}
       <div className="flex flex-1 overflow-hidden">
@@ -813,85 +336,82 @@ export default function Builder() {
         `}>
 
           {/* Template switcher */}
-<div className="flex gap-2 mb-4 bg-white border border-[#E4E2EE] rounded-lg p-1">
-  {['minimal', 'corporate', 'creative'].map(t => {
-    const isLocked = !hasAccess && t !== 'minimal'
-    return (
-      <button
-        key={t}
-        onClick={() => !isLocked && setTemplate(t)}
-        title={isLocked ? 'Locked — go Pro or unlock this resume' : ''}
-        className={`
-          px-4 py-1.5 text-xs font-semibold rounded-md capitalize
-          transition-all duration-150 flex items-center gap-1.5
-          ${template === t
-            ? 'bg-[#3D2B6B] text-white'
-            : isLocked
-              ? 'text-[#C4C4C4] cursor-not-allowed'
-              : 'text-[#7A7893] hover:text-[#2C2C36] cursor-pointer'}
-        `}
-      >
-        {isLocked && <span className="text-[10px]">🔒</span>}
-        {t}
-      </button>
-  )
-  })}
-</div>
-
-{/* ── Access options ── */}
-{!hasAccess && (
-  <div className="w-full md:w-[595px] mb-4 bg-white border border-[#E4E2EE] rounded-xl p-4">
-    <div className="flex items-center justify-between gap-3 mb-3">
-      <p className="text-sm font-semibold text-[#2C2C36]">Access options</p>
-    </div>
-
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-      <button
-        type="button"
-        onClick={async () => {
-          if (!resumeId) return
-          try {
-            const url = await initializeSingleUnlock(resumeId)
-            window.location.href = url
-          } catch (err) {
-            alert('Could not start payment: ' + err.message)
-}
-        }}
-        disabled={!resumeId}
-        className={`
-          text-left rounded-xl border p-4 transition-all duration-150
-          ${resumeId
-            ? 'bg-white border-[#E4E2EE] hover:border-[#CDBEE8] hover:shadow-sm cursor-pointer'
-            : 'bg-[#FAFAFC] border-[#E4E2EE] opacity-60 cursor-not-allowed'}
-        `}
-      >
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="text-2xl font-bold tracking-tight text-[#1A1A22]">₦1,500</p>
-            <p className="mt-1 text-sm text-[#7A7893]">This resume only</p>
+          <div className="flex gap-2 mb-4 bg-white border border-[#E4E2EE] rounded-lg p-1">
+            {['minimal', 'corporate', 'creative'].map(t => {
+              const isLocked = !hasAccess && t !== 'minimal'
+              return (
+                <button
+                  key={t}
+                  onClick={() => !isLocked && setTemplate(t)}
+                  title={isLocked ? 'Locked — go Pro or unlock this resume' : ''}
+                  className={`
+                    px-4 py-1.5 text-xs font-semibold rounded-md capitalize
+                    transition-all duration-150 flex items-center gap-1.5
+                    ${template === t
+                      ? 'bg-[#3D2B6B] text-white'
+                      : isLocked
+                        ? 'text-[#C4C4C4] cursor-not-allowed'
+                        : 'text-[#7A7893] hover:text-[#2C2C36] cursor-pointer'}
+                  `}
+                >
+                  {isLocked && <span className="text-[10px]">🔒</span>}
+                  {t}
+                </button>
+              )
+            })}
           </div>
-        </div>
-      </button>
 
-      <button
-        type="button"
-        onClick={() => { window.location.href = '/pricing' }}
-        className="text-left rounded-xl border border-[#E4E2EE] bg-white p-4 transition-all duration-150 hover:border-[#CDBEE8] hover:shadow-sm cursor-pointer"
-      >
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="text-2xl font-bold tracking-tight text-[#1A1A22]">₦5,000/mo</p>
-            <p className="mt-1 text-sm text-[#7A7893]">Unlimited resumes and templates</p>
-          </div>
-        </div>
-      </button>
-    </div>
-  </div>
-)}
+          {/* Access options */}
+          {!hasAccess && (
+            <div className="w-full md:w-[595px] mb-4 bg-white border border-[#E4E2EE] rounded-xl p-4">
+              <div className="flex items-center justify-between gap-3 mb-3">
+                <p className="text-sm font-semibold text-[#2C2C36]">Access options</p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (!resumeId) return
+                    try {
+                      const url = await initializeSingleUnlock(resumeId)
+                      window.location.href = url
+                    } catch (err) {
+                      alert('Could not start payment: ' + err.message)
+                    }
+                  }}
+                  disabled={!resumeId}
+                  className={`
+                    text-left rounded-xl border p-4 transition-all duration-150
+                    ${resumeId
+                      ? 'bg-white border-[#E4E2EE] hover:border-[#CDBEE8] hover:shadow-sm cursor-pointer'
+                      : 'bg-[#FAFAFC] border-[#E4E2EE] opacity-60 cursor-not-allowed'}
+                  `}
+                >
+                  <p className="text-2xl font-bold tracking-tight text-[#1A1A22]">₦1,500</p>
+                  <p className="mt-1 text-sm text-[#7A7893]">This resume only</p>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => { window.location.href = '/pricing' }}
+                  className="text-left rounded-xl border border-[#E4E2EE] bg-white p-4 transition-all duration-150 hover:border-[#CDBEE8] hover:shadow-sm cursor-pointer"
+                >
+                  <p className="text-2xl font-bold tracking-tight text-[#1A1A22]">₦5,000/mo</p>
+                  <p className="mt-1 text-sm text-[#7A7893]">Unlimited resumes and templates</p>
+                </button>
+              </div>
+
+              {!resumeId && (
+                <p className="text-[11px] text-[#7A7893] mt-2">
+                  💡 Save this resume first to unlock the single-resume option.
+                </p>
+              )}
+            </div>
+          )}
 
           {/* Resume preview */}
           <div
-            ref={printRef}
             id="resume-preview"
             className="bg-white w-full md:w-[595px] min-h-[842px] shadow-sm border border-[#E4E2EE] rounded overflow-hidden"
           >
@@ -916,4 +436,3 @@ export default function Builder() {
     </div>
   )
 }
-
