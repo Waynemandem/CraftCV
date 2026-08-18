@@ -2,7 +2,7 @@
 import { useState, useEffect }                    from 'react'
 import { Link, useSearchParams }                  from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient }  from '@tanstack/react-query'
-import { PDFDownloadLink }                        from '@react-pdf/renderer'
+import { usePDF }                                 from '@react-pdf/renderer'
 import { createResume, updateResume, initializeSingleUnlock, fetchResumeById } from '../lib/resumeService'
 import useResumeStore                             from '../store/resumeStore'
 import { useProfile }                             from '../hooks/useProfile'
@@ -133,8 +133,9 @@ export default function Builder() {
     return 'Save'
   }
 
-  // ── Shared PDF document — used by both desktop and mobile download buttons
-  const pdfDocument = (
+// ── PDF generation via usePDF hook — more reliable on mobile than PDFDownloadLink
+const [pdfInstance, updatePdf] = usePDF({
+  document: (
     <MinimalPDF
       personal={personal}
       summary={summary}
@@ -144,9 +145,26 @@ export default function Builder() {
       projects={projects}
       certs={certs}
     />
-  )
-  const pdfFileName = `${personal.name || 'Resume'} - OrbitCV.pdf`
+  ),
+})
 
+const pdfFileName = `${personal.name || 'Resume'} - OrbitCV.pdf`
+
+const handleDownloadPdf = () => {
+  if (!pdfInstance.url) return
+
+  // Try a real download first
+  const link = document.createElement('a')
+  link.href = pdfInstance.url
+  link.download = pdfFileName
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+
+  // Fallback: some mobile browsers ignore the download attribute
+  // and just navigate — this is still fine, it opens the PDF so 
+  // the user can save it from there via their browser's own share/save option
+}
   return (
     <div className="min-h-screen bg-[#F8F7FC] flex flex-col">
 
@@ -186,21 +204,14 @@ export default function Builder() {
             {saveLabel()}
           </button>
 
-          {/* Download PDF — desktop only — react-pdf, works reliably on mobile too */}
-          <PDFDownloadLink
-            document={pdfDocument}
-            fileName={pdfFileName}
-            className="hidden md:block"
-          >
-            {({ loading }) => (
-              <button
-                disabled={loading}
-                className="text-sm font-semibold text-white bg-[#3D2B6B] px-4 py-2 rounded-md hover:bg-[#2e2053] transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
-              >
-                {loading ? 'Preparing PDF...' : 'Download PDF'}
-              </button>
-            )}
-          </PDFDownloadLink>
+         {/* Download PDF — desktop only — react-pdf usePDF hook */}
+<button
+  onClick={handleDownloadPdf}
+  disabled={pdfInstance.loading}
+  className="hidden md:block text-sm font-semibold text-white bg-[#3D2B6B] px-4 py-2 rounded-md hover:bg-[#2e2053] transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+>
+  {pdfInstance.loading ? 'Preparing PDF...' : 'Download PDF'}
+</button>
 
           {/* Hamburger — mobile only */}
           <div className="relative md:hidden">
@@ -267,23 +278,14 @@ export default function Builder() {
                   </button>
                 </div>
 
-                {/* Download in menu — react-pdf */}
-                <PDFDownloadLink
-                  document={pdfDocument}
-                  fileName={pdfFileName}
-                  className="w-full block"
-                >
-                  {({ loading }) => (
-                    <button
-                      onClick={() => !loading && setMenuOpen(false)}
-                      disabled={loading}
-                      className="w-full flex items-center gap-2 px-4 py-3 text-sm font-medium text-[#3D2B6B] hover:bg-[#F8F7FC] transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
-                    >
-                      {loading ? 'Preparing PDF...' : '↓ Download PDF'}
-                    </button>
-                  )}
-                </PDFDownloadLink>
-
+               {/* Download in menu — react-pdf usePDF hook */}
+<button
+  onClick={() => { handleDownloadPdf(); setMenuOpen(false) }}
+  disabled={pdfInstance.loading}
+  className="w-full flex items-center gap-2 px-4 py-3 text-sm font-medium text-[#3D2B6B] hover:bg-[#F8F7FC] transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+>
+  {pdfInstance.loading ? 'Preparing PDF...' : '↓ Download PDF'}
+</button>
               </div>
             )}
           </div>
