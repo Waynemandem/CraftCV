@@ -21,6 +21,10 @@ import CertsForm                                  from '../components/forms/Cert
 import MinimalTemplate                            from '../components/resume/MinimalTemplate'
 import CorporateTemplate                          from '../components/resume/CorporateTemplate'
 import CreativeTemplate                           from '../components/resume/CreativeTemplate'
+import { PDFDownloadLink } from '@react-pdf/renderer'
+import MinimalPDF from '../components/resume/pdf/MinimalPDF'
+
+
 
 export default function Builder() {
   // ── UI state
@@ -610,15 +614,31 @@ export default function Builder() {
             {saveLabel()}
           </button>
 
-          {/* Download PDF — desktop only — now uses handleDownloadClick */}
-          <button
-            onClick={handleDownloadClick}
-            disabled={isPreparingPdf}
-            className="hidden md:block text-sm font-semibold text-white bg-[#3D2B6B] px-4 py-2 rounded-md hover:bg-[#2e2053] transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
-          >
-            {isPreparingPdf ? 'Preparing PDF...' : 'Download PDF'}
-      </button>
-
+       {/* Download PDF — desktop only — now uses react-pdf, works reliably on mobile too */}
+<PDFDownloadLink
+  document={
+    <MinimalPDF
+      personal={personal}
+      summary={summary}
+      experience={experience}
+      education={education}
+      skills={skills}
+      projects={projects}
+      certs={certs}
+    />
+  }
+  fileName={`${personal.name || 'Resume'} - OrbitCV.pdf`}
+  className="hidden md:block"
+>
+  {({ loading }) => (
+    <button
+      disabled={loading}
+      className="text-sm font-semibold text-white bg-[#3D2B6B] px-4 py-2 rounded-md hover:bg-[#2e2053] transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+    >
+      {loading ? 'Preparing PDF...' : 'Download PDF'}
+    </button>
+  )}
+</PDFDownloadLink>
 
 
 
@@ -709,13 +729,31 @@ export default function Builder() {
                 </div>
 
                 {/* Download in menu — now uses handleDownloadClick */}
-                <button
-                  onClick={() => { handleDownloadClick(); setMenuOpen(false) }}
-                  disabled={isPreparingPdf}
-                  className="w-full flex items-center gap-2 px-4 py-3 text-sm font-medium text-[#3D2B6B] hover:bg-[#F8F7FC] transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
-                >
-                  {isPreparingPdf ? 'Preparing PDF...' : '↓ Download PDF'}
-                </button>
+              <PDFDownloadLink
+  document={
+    <MinimalPDF
+      personal={personal}
+      summary={summary}
+      experience={experience}
+      education={education}
+      skills={skills}
+      projects={projects}
+      certs={certs}
+    />
+  }
+  fileName={`${personal.name || 'Resume'} - OrbitCV.pdf`}
+  className="w-full"
+>
+  {({ loading }) => (
+    <button
+      onClick={() => !loading && setMenuOpen(false)}
+      disabled={loading}
+      className="w-full flex items-center gap-2 px-4 py-3 text-sm font-medium text-[#3D2B6B] hover:bg-[#F8F7FC] transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+    >
+      {loading ? 'Preparing PDF...' : '↓ Download PDF'}
+    </button>
+  )}
+</PDFDownloadLink>
 
               </div>
             )}
