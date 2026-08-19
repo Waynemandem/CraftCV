@@ -148,6 +148,21 @@ const [pdfInstance, updatePdf] = usePDF({
   ),
 })
 
+// ✅ ADD THIS — keeps the PDF instance synced whenever resume data changes
+useEffect(() => {
+  updatePdf(
+    <MinimalPDF
+      personal={personal}
+      summary={summary}
+      experience={experience}
+      education={education}
+      skills={skills}
+      projects={projects}
+      certs={certs}
+    />
+  )
+}, [personal, summary, experience, education, skills, projects, certs])
+
 const pdfFileName = `${personal.name || 'Resume'} - OrbitCV.pdf`
 
 const handleDownloadPdf = () => {
