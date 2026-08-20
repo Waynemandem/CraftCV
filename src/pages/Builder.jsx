@@ -19,6 +19,8 @@ import MinimalTemplate                            from '../components/resume/Min
 import CorporateTemplate                          from '../components/resume/CorporateTemplate'
 import CreativeTemplate                           from '../components/resume/CreativeTemplate'
 import MinimalPDF                                 from '../components/resume/pdf/MinimalPDF'
+import CorporatePDF                               from '../components/resume/pdf/CorporatePDF'
+import CreativePDF                                from '../components/resume/pdf/CreativePDF'
 
 export default function Builder() {
   // ── UI state
@@ -133,10 +135,20 @@ export default function Builder() {
     return 'Save'
   }
 
+// ── Pick the correct PDF component based on selected template
+const PDF_COMPONENTS = {
+  minimal:   MinimalPDF,
+  corporate: CorporatePDF,
+  creative:  CreativePDF,
+}
+
+const SelectedPDF = PDF_COMPONENTS[template] || MinimalPDF
+
+
 // ── PDF generation via usePDF hook — more reliable on mobile than PDFDownloadLink
 const [pdfInstance, updatePdf] = usePDF({
   document: (
-    <MinimalPDF
+    <SelectedPDF
       personal={personal}
       summary={summary}
       experience={experience}
@@ -151,7 +163,7 @@ const [pdfInstance, updatePdf] = usePDF({
 // ✅ ADD THIS — keeps the PDF instance synced whenever resume data changes
 useEffect(() => {
   updatePdf(
-    <MinimalPDF
+    <SelectedPDF
       personal={personal}
       summary={summary}
       experience={experience}
@@ -161,7 +173,7 @@ useEffect(() => {
       certs={certs}
     />
   )
-}, [personal, summary, experience, education, skills, projects, certs])
+}, [personal, summary, experience, education, skills, projects, certs, template, updatePdf])
 
 const pdfFileName = `${personal.name || 'Resume'} - OrbitCV.pdf`
 

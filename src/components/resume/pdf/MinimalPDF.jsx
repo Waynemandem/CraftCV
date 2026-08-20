@@ -22,7 +22,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#3D2B6B',
     marginBottom: 4,
-  },
+  },re
   contactRow: {
     flexDirection: 'row',
     gap: 8,
