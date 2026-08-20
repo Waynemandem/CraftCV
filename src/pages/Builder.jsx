@@ -187,11 +187,23 @@ const handleDownloadPdf = () => {
   document.body.appendChild(link)
   link.click()
   document.body.removeChild(link)
+}
+
+  const handleShareWhatsApp = () => {
+  const resumeUrl = resumeId
+    ? `${window.location.origin}/builder?id=${resumeId}`
+    : window.location.origin
+
+  const message = encodeURIComponent(
+    `Check out my resume built with OrbitCV! ${resumeUrl}`
+  )
+
+  window.open(`https://wa.me/?text=${message}`, '_blank')}
 
   // Fallback: some mobile browsers ignore the download attribute
   // and just navigate — this is still fine, it opens the PDF so 
   // the user can save it from there via their browser's own share/save option
-}
+
   return (
     <div className="min-h-screen bg-[#F8F7FC] flex flex-col">
 
@@ -232,13 +244,23 @@ const handleDownloadPdf = () => {
           </button>
 
          {/* Download PDF — desktop only — react-pdf usePDF hook */}
-<button
-  onClick={handleDownloadPdf}
-  disabled={pdfInstance.loading}
-  className="hidden md:block text-sm font-semibold text-white bg-[#3D2B6B] px-4 py-2 rounded-md hover:bg-[#2e2053] transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
->
-  {pdfInstance.loading ? 'Preparing PDF...' : 'Download PDF'}
-</button>
+          <button
+             onClick={handleDownloadPdf}
+             disabled={pdfInstance.loading}
+             className="hidden md:block text-sm font-semibold text-white bg-[#3D2B6B] px-4 py-2 rounded-md hover:bg-[#2e2053] transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+            >
+                {pdfInstance.loading ? 'Preparing PDF...' : 'Download PDF'}
+          </button>
+          
+          <button
+             onClick={handleShareWhatsApp}
+             className="hidden md:flex items-center gap-1.5 text-sm font-semibold text-[#25D366] border border-[#25D366] px-4 py-2 rounded-md hover:bg-[#25D366] hover:text-white transition-colors"
+           >
+            Share
+          </button>
+
+          
+
 
           {/* Hamburger — mobile only */}
           <div className="relative md:hidden">
@@ -312,6 +334,14 @@ const handleDownloadPdf = () => {
   className="w-full flex items-center gap-2 px-4 py-3 text-sm font-medium text-[#3D2B6B] hover:bg-[#F8F7FC] transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
 >
   {pdfInstance.loading ? 'Preparing PDF...' : '↓ Download PDF'}
+</button>
+
+
+<button
+  onClick={() => { handleShareWhatsApp(); setMenuOpen(false) }}
+  className="w-full flex items-center gap-2 px-4 py-3 text-sm font-medium text-[#25D366] hover:bg-[#F8F7FC] transition-colors"
+>
+  Share via WhatsApp
 </button>
               </div>
             )}
