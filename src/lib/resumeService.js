@@ -206,3 +206,48 @@ export const initializeSingleUnlock = async (resumeId) => {
 
   return data.url
 }
+
+// Generate a short random slug for public sharing
+const generateSlug = () => {
+  return Math.random().toString(36).substring(2, 10)
+}
+
+export const enablePublicShare = async (resumeId) => {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  // Verify ownership first
+  const { data: resume, error: fetchError } = await supabase
+    .from('resumes')
+    .select('id, user_id, share_slug')
+    .eq('id', resumeId)
+    .single()
+
+  if (fetchError || !resume) throw new Error('Resume not found')
+  if (resume.user_id !== user.id) throw new Error('You do not own this resume')
+
+  // If already has a slug, just return it (idempotent)
+  if (resume.share_slug) return resume.share_slug
+
+  const slug = generateSlug()
+
+  const { error: updateError } = await supabase
+    .from('resumes')
+    .update({ share_slug: slug })
+    .eq('id', resumeId)
+
+  if (updateError) throw new Error(updateError.message)
+
+  return slug
+}
+
+export const fetchResumeBySlug = async (slug) => {
+  const { data, error } = await supabase
+    .from('resumes')
+    .select('*')
+    .eq('share_slug', slug)
+    .single()
+
+  if (error) throw new Error('Resume not found or no longer shared')
+  return data
+}

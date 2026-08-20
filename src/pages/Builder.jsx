@@ -21,6 +21,7 @@ import CreativeTemplate                           from '../components/resume/Cre
 import MinimalPDF                                 from '../components/resume/pdf/MinimalPDF'
 import CorporatePDF                               from '../components/resume/pdf/CorporatePDF'
 import CreativePDF                                from '../components/resume/pdf/CreativePDF'
+import { enablePublicShare }                      from '../lib/resumeService'
 
 export default function Builder() {
   // ── UI state
@@ -189,17 +190,22 @@ const handleDownloadPdf = () => {
   document.body.removeChild(link)
 }
 
-  const handleShareWhatsApp = () => {
-  const resumeUrl = resumeId
-    ? `${window.location.origin}/builder?id=${resumeId}`
-    : window.location.origin
+ 
+const handleShareWhatsApp = async () => {
+  if (!resumeId) {
+    alert('Please save your resume first before sharing.')
+    return
+  }
 
-  const message = encodeURIComponent(
-    `Check out my resume built with OrbitCV! ${resumeUrl}`
-  )
-
-  window.open(`https://wa.me/?text=${message}`, '_blank')}
-
+  try {
+    const slug = await enablePublicShare(resumeId)
+    const shareUrl = `${window.location.origin}/r/${slug}`
+    const message = encodeURIComponent(`Check out my resume: ${shareUrl}`)
+    window.open(`https://wa.me/?text=${message}`, '_blank')
+  } catch (err) {
+    alert('Could not create share link: ' + err.message)
+  }
+}
   // Fallback: some mobile browsers ignore the download attribute
   // and just navigate — this is still fine, it opens the PDF so 
   // the user can save it from there via their browser's own share/save option

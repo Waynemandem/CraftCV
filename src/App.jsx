@@ -17,6 +17,7 @@ import NotFound from './pages/NotFound'
 import ResetPassword from './pages/ResetPassword'
 import ForgotPasswordForm from './components/auth/ForgotPasswordForm'
 import Support from './pages/Support'
+import PublicResume from './pages/PublicResume'
 
 export default function App() {
   const init = useAuthStore(s => s.init)
@@ -48,6 +49,7 @@ export default function App() {
       <Route path="/forgot-password" element={<ForgotPasswordForm onBack={() => window.location.href = '/auth'} />} />
       <Route path="/support" element={<Support />} />
       <Route path="*" element={<NotFound />} />
+      <Route path="/r/:slug" element={<PublicResume />} />
     </Routes>
   )
 }
