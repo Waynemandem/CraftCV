@@ -209,7 +209,7 @@ export default function Features() {
             </div>
 
             {[
-              { feature: 'Resumes',         free: '1',            pro: 'Unlimited' },
+              { feature: 'Resumes',         free: '3',            pro: 'Unlimited' },
               { feature: 'Templates',        free: 'Minimal only', pro: 'All 3'    },
               { feature: 'AI Summary',       free: '✕',            pro: '✓'        },
               { feature: 'AI Bullet Points', free: '✕',            pro: '✓'        },
