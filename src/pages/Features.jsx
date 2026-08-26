@@ -159,7 +159,7 @@ export default function Features() {
             How it works
           </p>
           <h2 className="text-2xl md:text-3xl font-bold text-[#1A1A22] tracking-tight text-center mb-14">
-            From blank page to hired — in minutes.
+            From blank page to hired in minutes.
           </h2>
 
           <div className="flex flex-col gap-0">
