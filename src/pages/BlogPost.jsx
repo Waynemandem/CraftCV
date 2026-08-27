@@ -23,3 +23,5 @@ function BlogPost({ post }) {
     </>
   );
 }
+
+export default BlogPost;
