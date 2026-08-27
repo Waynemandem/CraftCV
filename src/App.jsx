@@ -18,6 +18,8 @@ import ResetPassword from './pages/ResetPassword'
 import ForgotPasswordForm from './components/auth/ForgotPasswordForm'
 import Support from './pages/Support'
 import PublicResume from './pages/PublicResume'
+import BlogIndex from './pages/BlogIndex'
+import BlogPost from './pages/BlogPost'
 
 
 export default function App() {
