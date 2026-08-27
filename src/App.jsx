@@ -18,7 +18,6 @@ import ResetPassword from './pages/ResetPassword'
 import ForgotPasswordForm from './components/auth/ForgotPasswordForm'
 import Support from './pages/Support'
 import PublicResume from './pages/PublicResume'
-import BlogIndex from './pages/BlogIndex'
 import BlogPost from './pages/BlogPost'
 
 
@@ -53,7 +52,6 @@ export default function App() {
       <Route path="/support" element={<Support />} />
       <Route path="*" element={<NotFound />} />
       <Route path="/r/:slug" element={<PublicResume />} />
-      <Route path="/blog" element={<BlogIndex />} />
       <Route path="/blog/:slug" element={<BlogPost />} />
     </Routes>
   )
